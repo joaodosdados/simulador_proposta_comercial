@@ -17,6 +17,76 @@ PROFISSIONAIS_DISPONIVEIS = [
 ]
 
 
+def gerar_cronograma_ia(diagnostico, objetivos, semanas):
+    perfis = {
+        "modelo preditivo": [
+            "Cientista de Dados",
+            "Engenheiro de Dados",
+            "Analista de Negócios",
+        ],
+        "dashboard": [
+            "Analista de Negócios",
+            "Cientista de Dados",
+            "Arquiteto de Soluções",
+        ],
+        "etl": ["Engenheiro de Dados", "Arquiteto de Soluções", "Gerente de Projetos"],
+        "projeto generico": [
+            "Cientista de Dados",
+            "Engenheiro de Dados",
+            "Analista de Negócios",
+            "Gerente de Projetos",
+        ],
+    }
+
+    texto = (diagnostico + " " + objetivos).lower()
+    if "modelo" in texto or "classificação" in texto or "regressão" in texto:
+        tipo = "modelo preditivo"
+    elif "dashboard" in texto or "visualização" in texto:
+        tipo = "dashboard"
+    elif "etl" in texto or "pipeline" in texto or "dados brutos" in texto:
+        tipo = "etl"
+    else:
+        tipo = "projeto generico"
+
+    profissionais = perfis[tipo]
+    data = []
+    horas_base = 12
+
+    for semana in range(1, semanas + 1):
+        for prof in profissionais:
+            if prof == "Gerente de Projetos":
+                horas = 4 if semana in [1, semanas] else 2
+            elif semana in [1, semanas]:
+                horas = horas_base // 2
+            else:
+                horas = horas_base
+
+            custo_hora = next(
+                p["custo_hora"]
+                for p in [
+                    {"cargo": "Cientista de Dados", "custo_hora": 150},
+                    {"cargo": "Engenheiro de Dados", "custo_hora": 140},
+                    {"cargo": "Analista de Negócios", "custo_hora": 130},
+                    {"cargo": "Arquiteto de Soluções", "custo_hora": 160},
+                    {"cargo": "Gerente de Projetos", "custo_hora": 145},
+                ]
+                if p["cargo"] == prof
+            )
+
+            data.append(
+                {
+                    "Semana": semana,
+                    "Profissional": prof,
+                    "Horas": horas,
+                    "Custo Hora": custo_hora,
+                    "Custo Total": horas * custo_hora,
+                }
+            )
+
+    df = pd.DataFrame(data)
+    return tipo, df
+
+
 def gerar_dataframe_inicial(semanas, profissionais):
     data = []
     for semana in range(1, semanas + 1):
@@ -38,7 +108,7 @@ def gerar_dataframe_inicial(semanas, profissionais):
     return pd.DataFrame(data)
 
 
-def mostrar_cronograma(cronograma_df):
+def mostrar_cronograma(cronograma_df, key_suffix="padrao"):
     st.markdown("### 📋 Tabela de Alocação (Editável)")
 
     gb = GridOptionsBuilder.from_dataframe(cronograma_df)
@@ -54,7 +124,7 @@ def mostrar_cronograma(cronograma_df):
         update_mode=GridUpdateMode.VALUE_CHANGED,
         fit_columns_on_grid_load=True,
         height=300,
-        key="cronograma_grid",
+        key=f"cronograma_grid_{key_suffix}",
     )
 
     df_editado = grid_return["data"]
@@ -157,6 +227,22 @@ def render():
         st.session_state["last_semanas"] = semanas
         st.session_state["last_profissionais"] = profissionais_selecionados
 
-        mostrar_cronograma(st.session_state.cronograma_df)
+        mostrar_cronograma(sugestao_df, key_suffix="ia")
     else:
         st.warning("Selecione ao menos um profissional para configurar o cronograma.")
+
+    if profissionais_selecionados:
+        st.markdown("---")
+    if st.button("✨ Gerar sugestão de cronograma com IA"):
+        objetivos = st.session_state.get("objetivos", "")
+        diagnostico = st.session_state.get("resultado_diagnostico", "")
+        tipo, sugestao_df = gerar_cronograma_ia(diagnostico, objetivos, semanas)
+        st.session_state.cronograma_df = sugestao_df
+        st.session_state["last_semanas"] = semanas
+        st.session_state["last_profissionais"] = (
+            sugestao_df["Profissional"].unique().tolist()
+        )
+        st.success(
+            f"Cronograma sugerido com base em um projeto do tipo: **{tipo.upper()}**"
+        )
+        mostrar_cronograma(sugestao_df, key_suffix="ia")
