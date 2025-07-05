@@ -17,4 +17,5 @@ dependencies = [
     "seaborn>=0.13.2",
     "streamlit>=1.46.1",
     "streamlit-aggrid>=1.1.6",
+    "streamlit-option-menu>=0.4.0",
 ]
