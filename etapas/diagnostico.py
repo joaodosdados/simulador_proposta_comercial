@@ -25,7 +25,6 @@ def extract_text_from_file(uploaded_file):
 
 
 def render():
-    render_sidebar()
     st.subheader("🔍 Etapa 1: Diagnóstico")
     benchmark_text = carregar_benchmark("cemig")
 

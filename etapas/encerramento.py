@@ -94,7 +94,6 @@ def gerar_pdf():
 
 
 def render():
-    render_sidebar()
     st.subheader("✅ Etapa 7: Encerramento e Exportação da Proposta")
 
     preco_final = st.session_state.get("total_com_adicional", 0.0)

@@ -6,8 +6,6 @@ from utils.llm import gerar_resposta_ollama
 
 
 def render():
-    render_sidebar()
-
     st.subheader("⚠️ Etapa 6: Premissas e Limitações")
 
     objetivos = st.session_state.get("objetivos", "Objetivos não definidos.")

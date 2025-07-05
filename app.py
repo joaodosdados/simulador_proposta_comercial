@@ -1,3 +1,4 @@
+import streamlit as st
 from etapas import (
     diagnostico,
     objetivos,
@@ -6,11 +7,25 @@ from etapas import (
     restricoes,
     encerramento,
 )
+from utils.navigation import render_sidebar, ETAPAS
 
-import streamlit as st
+st.set_page_config(page_title="SimulAI - Simulador de Propostas", layout="wide")
 
-st.set_page_config(page_title="Simulador de Propostas DS", layout="wide")
+# Cabeçalho do projeto
+st.markdown("<h1 style='color:#0F62FE;'>SimulAI </h1>", unsafe_allow_html=True)
 
+# Renderiza sidebar estilizada
+render_sidebar()
+
+# Barra de progresso baseada na etapa
+etapas_keys = list(ETAPAS.keys())
+etapa_atual = st.session_state.get("etapa", "diagnostico")
+indice = etapas_keys.index(etapa_atual)
+st.progress(
+    (indice + 1) / len(etapas_keys), text=f"Etapa {indice + 1} de {len(etapas_keys)}"
+)
+
+# Executa etapa correspondente
 ETAPAS_FUNCOES = {
     "diagnostico": diagnostico.render,
     "objetivos": objetivos.render,
@@ -18,8 +33,5 @@ ETAPAS_FUNCOES = {
     "cronograma": cronograma.render,
     "restricoes": restricoes.render,
     "encerramento": encerramento.render,
-    # outras etapas a seguir...
 }
-
-etapa_atual = st.session_state.get("etapa", "diagnostico")
 ETAPAS_FUNCOES[etapa_atual]()

@@ -4,7 +4,6 @@ from utils.llm import gerar_resposta_ollama
 
 
 def render():
-    render_sidebar()
     st.subheader("🎯 Etapa 2: Objetivos do Projeto")
 
     qtd = st.session_state.get("qtd_oportunidades", 0)

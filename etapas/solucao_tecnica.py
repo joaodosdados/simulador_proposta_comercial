@@ -6,7 +6,6 @@ from utils.llm import gerar_resposta_ollama
 
 
 def render():
-    render_sidebar()
     st.subheader("🛠️ Etapa 3: Solução Técnica")
 
     objetivos_base = st.session_state.get("objetivos", "Objetivos ainda não definidos.")
