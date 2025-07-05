@@ -34,3 +34,69 @@ Este projeto é um simulador interativo desenvolvido em [Streamlit](https://stre
 ```bash
 git clone https://github.com/joaolso/simulador_proposta_comercial.git
 cd simulador_proposta_comercial
+```
+
+### 2. Crie e ative o ambiente virtual
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+.venv\Scripts\activate   # Windows
+```
+
+### 3. Instale as dependências
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Execute a aplicação
+
+```bash
+streamlit run app.py
+```
+
+---
+
+## 📦 Estrutura do Projeto
+
+```
+simulador_proposta_comercial/
+│
+├── app.py                     # Aplicação principal do Streamlit
+├── requirements.txt           # Dependências do projeto
+├── .gitignore
+├── simulacoes_salvas/        # Pasta para PDFs e arquivos JSON gerados
+├── utils/
+│   └── navigation.py          # Gerencia o menu lateral e etapas
+└── etapas/
+    ├── diagnostico.py
+    ├── objetivos.py
+    ├── solucao.py
+    ├── cronograma.py
+    ├── encerramento.py
+```
+
+---
+
+## 📌 Roadmap
+
+- [x] Estrutura de proposta com navegação entre etapas
+- [x] Cronograma com edição e visualização interativa
+- [ ] 🔥 Sugestão automática de cronograma com IA generativa
+- [ ] Exportação para DOCX (em adição ao PDF)
+- [ ] Integração com envio por e-mail
+
+---
+
+## 🧑‍💻 Autor
+
+**João Lucas dos Santos Oliveira**  
+Data Scientist | AI Engineer  
+[GitHub](https://github.com/joaolso) · [LinkedIn](https://linkedin.com/in/joaolso)
+
+---
+
+## 🛡️ Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [`LICENSE`](LICENSE) para mais detalhes.
