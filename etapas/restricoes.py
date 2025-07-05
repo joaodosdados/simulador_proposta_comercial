@@ -1,8 +1,8 @@
-# etapas/restricoes.py
+# Pasta: etapas/
+# Arquivo: restricoes.py
 import streamlit as st
-import openai
 from utils.navigation import render_sidebar
-from utils.ai_agent import gerar_texto_personalizado
+from utils.llm import gerar_resposta_ollama
 
 
 def render():
@@ -36,7 +36,7 @@ def render():
             - Alertas de risco e salvaguardas contratuais
             """
 
-            resultado = gerar_texto_personalizado(prompt)
+            resultado = gerar_resposta_ollama(prompt)
             st.session_state.premissas_limitacoes = resultado
             st.success("Texto gerado com sucesso!")
 

@@ -1,6 +1,6 @@
 import streamlit as st
-from utils.ai_agent import agente_identifica_oportunidades
 from utils.navigation import render_sidebar, ETAPAS
+from utils.llm import gerar_resposta_ollama
 
 
 def render():
@@ -19,14 +19,14 @@ def render():
     if st.button("⚙️ Gerar Objetivos com IA", key="btn_gerar_objetivos"):
         with st.spinner("Gerando objetivos com IA..."):
             prompt_objetivos = f"""
-                            Você é um consultor técnico. Com base nas oportunidades abaixo, gere uma lista de objetivos estratégicos e técnicos para o projeto de Data Science.
+            Você é um consultor técnico. Com base nas oportunidades abaixo, gere uma lista de objetivos estratégicos e técnicos para o projeto de Data Science.
 
-                            As oportunidades foram:
-                            "{texto_base}"
+            As oportunidades foram:
+            "{texto_base}"
 
-                            Liste entre 3 e 6 objetivos práticos, claros e conectados ao conteúdo.
-                            """
-            objetivos_gerados = agente_identifica_oportunidades(prompt_objetivos)
+            Liste entre 3 e 6 objetivos práticos, claros e conectados ao conteúdo.
+            """
+            objetivos_gerados = gerar_resposta_ollama(prompt_objetivos)
             st.session_state.objetivos = objetivos_gerados
             st.success("Objetivos gerados com sucesso!")
 

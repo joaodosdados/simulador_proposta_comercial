@@ -1,11 +1,11 @@
 # Pasta: etapas/
 # Arquivo: diagnostico.py
 import streamlit as st
-from utils.ai_agent import agente_identifica_oportunidades
 from utils.benchmark_loader import carregar_benchmark
 from PyPDF2 import PdfReader
 import docx
 from utils.navigation import render_sidebar, ETAPAS
+from utils.llm import gerar_resposta_ollama  # <-- corrigido aqui
 
 
 def extract_text_from_file(uploaded_file):
@@ -47,7 +47,13 @@ def render():
 
     if st.button("🔎 Analisar com IA", key="btn_analisa_ia"):
         with st.spinner("Analisando..."):
-            resultado = agente_identifica_oportunidades(texto_extraido)
+            prompt = (
+                "Você é um agente especialista em identificar oportunidades de projetos de Data Science.\n"
+                "Com base no seguinte diagnóstico ou documento fornecido pelo cliente, identifique oportunidades claras para aplicação de projetos de ciência de dados, aprendizado de máquina ou automação.\n"
+                "Forneça a resposta no formato de lista, com bullet points iniciando com '-'.\n\n"
+                f"Diagnóstico:\n{texto_extraido.strip()}"
+            )
+            resultado = gerar_resposta_ollama(prompt)
             oportunidades = [
                 l for l in resultado.splitlines() if l.strip().startswith("-")
             ]
