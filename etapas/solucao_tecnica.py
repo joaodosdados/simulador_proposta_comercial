@@ -1,6 +1,8 @@
+# Pasta: etapas/
+# Arquivo: solucao_tecnica.py
 import streamlit as st
-from utils.ai_agent import agente_identifica_oportunidades
 from utils.navigation import render_sidebar, ETAPAS
+from utils.llm import gerar_resposta_ollama
 
 
 def render():
@@ -21,7 +23,7 @@ def render():
 
             Responda com clareza, de forma estruturada.
             """
-            solucao_gerada = agente_identifica_oportunidades(prompt_solucao)
+            solucao_gerada = gerar_resposta_ollama(prompt_solucao)
             st.session_state.solucao_tecnica = solucao_gerada
             st.success("Solução técnica gerada com sucesso!")
 
