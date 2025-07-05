@@ -44,10 +44,10 @@ source .venv/bin/activate  # Linux/Mac
 .venv\Scripts\activate   # Windows
 ```
 
-### 3. Instale as dependências
+### 3. Instale as dependências com uv
 
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 ### 4. Execute a aplicação
