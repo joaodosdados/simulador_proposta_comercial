@@ -18,27 +18,32 @@ PROFISSIONAIS_DISPONIVEIS = [
 ]
 
 
-def gerar_cronograma_ia_openai(diagnostico, objetivos, meses):
+def gerar_cronograma_ia_openai(diagnostico, objetivos, meses, profissionais_ia):
     try:
         prompt = f"""
-        Você é um especialista em planejamento de projetos de Data Science. 
-        Crie um cronograma de alocação de profissionais no formato JSON estritamente válido:
+        Você é um especialista em planejamento de projetos de Data Science.
 
+        Sua tarefa é gerar um cronograma em JSON ESTRITAMENTE válido e limpo, SEM QUALQUER TEXTO ou EXPLICAÇÃO ao redor.
+
+        Formato esperado:
         [
             {{
                 "Mês": 1,
                 "Profissional": "Cientista de Dados",
                 "Horas": 160
-            }}
+            }},
+            ...
         ]
 
-        ⚠️ ATENÇÃO CRUCIAL:
-        - Use APENAS profissionais desta lista: {', '.join([p['cargo'] for p in PROFISSIONAIS_DISPONIVEIS])}
-        - Formato EXATO: Mês (int), Profissional (string), Horas (int)
-        - NÃO inclua comentários, explicações ou caracteres inválidos como //, /* */, ...
-        - NÃO use reticências (...) ou placeholders
-        - Gere EXATAMENTE {meses} meses completos
-        - Apenas o JSON puro, sem markdown ou texto adicional
+        ⚠️ INSTRUÇÕES OBRIGATÓRIAS:
+        - Use SOMENTE os profissionais desta lista: {', '.join(profissionais_ia)}
+        - Use SOMENTE os profissionais desta lista, exatamente como escrito: "Gerente de Projetos", "Cientista de Dados Pl", "Eng. de Dados PL"
+        - NÃO reescreva, traduz ou modifique esses nomes. Use-os exatamente como estão.
+        - Estrutura EXATA: Mês (int), Profissional (string), Horas (int)
+        - NÃO insira explicações, markdown, comentários, reticências, introduções ou encerramentos
+        - NÃO use blocos ```json ou qualquer formatação adicional
+        - Gere EXATAMENTE {meses} meses, sem omitir nem repetir
+        - SUA RESPOSTA DEVE SER APENAS O JSON BRUTO
 
         Diagnóstico: {diagnostico}
         Objetivos: {objetivos}
@@ -62,7 +67,7 @@ def gerar_cronograma_ia_openai(diagnostico, objetivos, meses):
             json_str = re.sub(r",\s*\}", "}", json_str)
             return json_str.strip()
 
-        json_match = re.search(r"\[\s*\{.*?\}\s*\]", resposta, re.DOTALL)
+        json_match = re.search(r"\[\s*\{.*\}\s*\]", resposta, re.DOTALL)
         if not json_match:
             raise ValueError("Nenhum JSON válido encontrado na resposta da IA")
 
@@ -92,7 +97,7 @@ def gerar_cronograma_ia_openai(diagnostico, objetivos, meses):
             missing = required_columns - set(df.columns)
             raise ValueError(f"Colunas obrigatórias faltando: {missing}")
 
-        profissionais_validos = {p["cargo"] for p in PROFISSIONAIS_DISPONIVEIS}
+        profissionais_validos = set(profissionais_ia)
         profissionais_invalidos = set(df["Profissional"]) - profissionais_validos
         if profissionais_invalidos:
             raise ValueError(
@@ -220,12 +225,23 @@ def render():
     if st.button("✨ Gerar Sugestão com IA"):
         objetivos = st.session_state.get("objetivos", "")
         diagnostico = st.session_state.get("resultado_diagnostico", "")
-        df = gerar_cronograma_ia_openai(diagnostico, objetivos, meses)
-        st.session_state.cronograma_df = df
-        st.session_state.last_meses = meses
-        st.session_state.last_profissionais = profissionais_selecionados
-        st.session_state.force_grid_update = True  # Ativa a flag
-        st.rerun()
+        profissionais_selecionados = st.session_state.get(
+            "multiselect_profissionais", []
+        )
+        df = gerar_cronograma_ia_openai(
+            diagnostico, objetivos, meses, profissionais_selecionados
+        )
+
+        if not df.empty:
+            st.session_state.cronograma_df = df
+            st.session_state.last_meses = meses
+            st.session_state.last_profissionais = profissionais_selecionados
+            st.session_state.force_grid_update = True  # Ativa a flag
+            st.rerun()
+        else:
+            st.warning(
+                "⚠️ A IA não retornou um cronograma válido. Verifique a resposta acima."
+            )
 
     # Seção de valores financeiros com destaque
     if not st.session_state.cronograma_df.empty:
@@ -375,10 +391,31 @@ def render():
             # Atualiza o session_state imediatamente após edições
             if grid_response["data"] is not None:
                 df_editado = pd.DataFrame(grid_response["data"])
-                df_editado["Custo Total"] = (
-                    df_editado["Horas"] * df_editado["Custo Hora"]
-                )
-                st.session_state.cronograma_df.update(df_editado)
+
+                if st.button("💾 Salvar Alterações", key="salvar_alteracoes"):
+                    df_editado["Custo Total"] = (
+                        df_editado["Horas"] * df_editado["Custo Hora"]
+                    )
+                    st.session_state.cronograma_df = df_editado
+                    st.session_state.salvar_alteracoes_pendente = True
+                    st.success("✅ Alterações salvas!")
+                    st.rerun()
+
+            # Recalcular valores totais após rerun
+            if st.session_state.get("salvar_alteracoes_pendente"):
+                df = st.session_state.cronograma_df
+                st.session_state.total_geral = df["Custo Total"].sum()
+
+                if st.session_state.modelo_comercial == "Fixed-price":
+                    margem = st.session_state.margem_fixed_price
+                    preco_final = st.session_state.total_geral * (1 + margem / 100)
+                else:
+                    preco_final = st.session_state.total_geral
+
+                st.session_state.total_com_adicional = preco_final
+
+                # Resetar a flag após uso
+                st.session_state.salvar_alteracoes_pendente = False
 
         with tab2:
             col1, col2 = st.columns(2)

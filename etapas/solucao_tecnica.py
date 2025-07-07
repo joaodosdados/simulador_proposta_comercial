@@ -6,6 +6,50 @@ from utils.llm import gerar_resposta_ollama
 
 
 def render():
+    # Configuração de estilo
+    st.markdown(
+        """
+    <style>
+        .header-section {
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #161616;
+            margin: 1rem 0 0.5rem;
+        }
+        .info-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .comparison-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .comparison-panel {
+            flex: 1;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+        }
+        .comparison-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #0f62fe;
+        }
+    </style>
+    """,
+        unsafe_allow_html=True,
+    )
     st.subheader("🛠️ Etapa 3: Solução Técnica")
 
     objetivos_base = st.session_state.get("objetivos", "Objetivos ainda não definidos.")
