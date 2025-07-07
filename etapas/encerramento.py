@@ -69,7 +69,8 @@ def gerar_pdf():
     if cronograma_df is not None and not cronograma_df.empty:
         pdf.set_font("Arial", size=10)
         for index, row in cronograma_df.iterrows():
-            linha = f"{row['Semana']} - {row['Profissional']}: {row['Horas']}h @ R$ {row['Custo Hora']}/h"
+            linha = f"Mês {row['Mês']} - {row['Profissional']}: {row['Horas']}h @ R$ {row['Custo Hora']}/h"
+
             pdf.cell(0, 8, linha, ln=True)
         pdf.ln(2)
         total = st.session_state.get("total_geral", 0)
