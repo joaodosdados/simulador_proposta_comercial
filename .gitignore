@@ -1,0 +1,54 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Taipy
+.taipy/
+taipy.log
+
+# VS Code
+.vscode/
+.history/
+
+# PyInstaller
+*.spec
+dist/
+build/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Pytest
+.cache/
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+# Coverage
+.coverage
+htmlcov/
+coverage.xml
+
+# Environment variable files
+.env
+.env.*
+
+# macOS system files
+.DS_Store
+
+# Logs
+*.log
+
+# Database / temporary files
+*.db
+*.sqli*
