@@ -6,12 +6,66 @@ from utils.llm import gerar_resposta_ollama
 
 
 def render():
+    st.markdown(
+        """
+    <style>
+        .header-section {
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #161616;
+            margin: 1rem 0 0.5rem;
+        }
+        .info-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .comparison-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .stButton>button {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            background-color: #0f62fe;
+            color: white;
+            border: none;
+            font-weight: 500;
+        }
+        .stButton>button:hover {
+            background-color: #0353e9;
+        }
+        .comparison-panel {
+            flex: 1;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+        }
+        .comparison-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #0f62fe;
+        }
+    </style>
+    """,
+        unsafe_allow_html=True,
+    )
     st.subheader("⚠️ Etapa 6: Premissas e Limitações")
 
     objetivos = st.session_state.get("objetivos", "Objetivos não definidos.")
     solucao = st.session_state.get("solucao_tecnica", "Solução técnica não definida.")
 
-    st.markdown("**Base para gerar premissas e limitações:**")
     st.text_area("Objetivos do Projeto:", value=objetivos, height=150, disabled=False)
     st.text_area("Solução Técnica:", value=solucao, height=150, disabled=False)
 

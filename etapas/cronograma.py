@@ -10,11 +10,11 @@ import re
 PROFISSIONAIS_DISPONIVEIS = [
     {"cargo": "Gerente de Projetos", "custo_hora": 369.68},
     {"cargo": "Scrum Master", "custo_hora": 254.48},
-    {"cargo": "Arquiteto Pl", "custo_hora": 394.38},
-    {"cargo": "Analista de Negócios Pl", "custo_hora": 192.26},
-    {"cargo": "Desenvolvedor Pl", "custo_hora": 192.26},
-    {"cargo": "Cientista de Dados Pl", "custo_hora": 227.37},
-    {"cargo": "Eng. de Dados PL", "custo_hora": 227.37},
+    {"cargo": "Arquiteto", "custo_hora": 394.38},
+    {"cargo": "Analista de Negócios", "custo_hora": 192.26},
+    {"cargo": "Desenvolvedor", "custo_hora": 192.26},
+    {"cargo": "Cientista de Dados", "custo_hora": 227.37},
+    {"cargo": "Eng. de Dados", "custo_hora": 227.37},
 ]
 
 
@@ -42,30 +42,40 @@ def gerar_cronograma_ia_openai(diagnostico, objetivos, meses, profissionais_ia):
         - Estrutura EXATA: Mês (int), Profissional (string), Horas (int)
         - NÃO insira explicações, markdown, comentários, reticências, introduções ou encerramentos
         - NÃO use blocos ```json ou qualquer formatação adicional
-        - Gere EXATAMENTE {meses} meses, sem omitir nem repetir
+        - Gere a combinação completa de {meses} meses com TODOS os profissionais listados. Mesmo que um profissional não atue em um mês, inclua com "Horas": 0.
         - SUA RESPOSTA DEVE SER APENAS O JSON BRUTO
 
         Diagnóstico: {diagnostico}
         Objetivos: {objetivos}
         """
 
-        resposta = gerar_resposta_ollama(prompt, temperature=0.1)
+        resposta = gerar_resposta_ollama(prompt, temperature=0.5)
 
         # Pré-processamento robusto da resposta
         def clean_json_string(json_str):
-            json_str = re.sub(r"//.*?\n", "", json_str)  # Remove comentários de linha
+            # Remove comentários e blocos markdown
+            json_str = re.sub(r"```[\s\S]*?```", "", json_str)  # blocos markdown
+            json_str = re.sub(r"//.*?\n", "", json_str)  # comentários de linha
             json_str = re.sub(
                 r"/\*.*?\*/", "", json_str, flags=re.DOTALL
-            )  # Remove comentários de bloco
-            json_str = json_str.replace("...", "").replace(
-                "etc.", ""
-            )  # Remove reticências
-            json_str = "\n".join(
-                line for line in json_str.splitlines() if line.strip()
-            )  # Remove linhas vazias
-            json_str = re.sub(r",\s*\]", "]", json_str)  # Corrige vírgulas finais
+            )  # comentários de bloco
+
+            # Remove reticências e etc
+            json_str = (
+                json_str.replace("...", "")
+                .replace("…", "")
+                .replace("etc.", "")
+                .replace("etc", "")
+            )
+
+            # Corrige vírgulas antes de colchete ou chave
+            json_str = re.sub(r",\s*\]", "]", json_str)
             json_str = re.sub(r",\s*\}", "}", json_str)
-            return json_str.strip()
+
+            # Garante que não há lixo antes/depois
+            json_str = json_str.strip()
+
+            return json_str
 
         json_match = re.search(r"\[\s*\{.*\}\s*\]", resposta, re.DOTALL)
         if not json_match:
