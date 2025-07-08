@@ -2,7 +2,7 @@
 import requests
 
 
-def gerar_resposta_ollama(prompt, modelo="mistral", temperature=0.4):
+def gerar_resposta_ollama(prompt, modelo="llama3", temperature=0.4):
     try:
         resposta = requests.post(
             "http://localhost:11434/api/generate",

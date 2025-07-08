@@ -30,6 +30,18 @@ def render():
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
+        .stButton>button {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            background-color: #0f62fe;
+            color: white;
+            border: none;
+            font-weight: 500;
+        }
+        .stButton>button:hover {
+            background-color: #0353e9;
+        }
         .comparison-panel {
             flex: 1;
             border: 1px solid #e0e0e0;
@@ -74,10 +86,6 @@ def render():
         )
 
     # Seção de comparação lado a lado
-    st.markdown(
-        '<div class="section-title">Comparação: Diagnóstico vs Objetivos</div>',
-        unsafe_allow_html=True,
-    )
 
     col1, col2 = st.columns(2)
     with col1:
@@ -85,13 +93,14 @@ def render():
             '<div class="comparison-title">📋 Diagnóstico Original</div>',
             unsafe_allow_html=True,
         )
-        st.markdown(
-            f"""
-        <div class="comparison-panel">
-            {st.session_state.get("resultado_diagnostico", "Nenhum diagnóstico disponível.")}
-        </div>
-        """,
-            unsafe_allow_html=True,
+        st.text_area(
+            label="Diagnóstico Original",
+            value=st.session_state.get(
+                "resultado_diagnostico", "Nenhum diagnóstico disponível."
+            ),
+            height=300,
+            disabled=False,
+            label_visibility="collapsed",
         )
 
     with col2:
@@ -126,6 +135,7 @@ def render():
             1. Liste 3-5 objetivos claros
             2. Relacione cada objetivo com itens do diagnóstico
             4. Formato: "- [Objetivo] - [Justificativa baseada no diagnóstico]"
+            5. Retorne o texto em portugues Brasil, brasileiro, sem formatação HTML ou Markdown
             """
             objetivos = gerar_resposta_ollama(prompt)
             st.session_state.objetivos = objetivos
