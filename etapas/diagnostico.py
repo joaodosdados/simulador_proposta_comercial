@@ -124,7 +124,8 @@ def render():
                     "3. Impacto potencial\n"
                     "4. Formate como lista markdown com:\n"
                     "   - Bullet points iniciando com '-'\n"
-                    "   - Breve justificativa entre parênteses\n\n"
+                    "   - Breve justificativa entre parênteses\n"
+                    "   - A saída deve ser em português Brasileiro\n\n"
                     f"Conteúdo:\n{texto_extraido.strip()}"
                 )
                 resultado = gerar_resposta_ollama(prompt)

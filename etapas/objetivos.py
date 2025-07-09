@@ -132,7 +132,7 @@ def render():
             {texto_base}
             
             Regras:
-            1. Liste 3-5 objetivos claros
+            1. Liste objetivos claros
             2. Relacione cada objetivo com itens do diagnóstico
             4. Formato: "- [Objetivo] - [Justificativa baseada no diagnóstico]"
             5. Retorne o texto em portugues Brasil, brasileiro, sem formatação HTML ou Markdown

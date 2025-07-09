@@ -86,6 +86,8 @@ def render():
             - Premissas operacionais (dados, acessos, permissões, sistemas...)
             - Limitações do escopo (integrações, sistemas legados, não inclusões...)
             - Alertas de risco e salvaguardas contratuais
+            
+            Retorne o texto em português Brasileiro
             """
 
             resultado = gerar_resposta_ollama(prompt)
