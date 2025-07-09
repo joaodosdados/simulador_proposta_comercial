@@ -71,8 +71,11 @@ def render():
     if st.button("⚙️ Gerar Solução Técnica com IA", key="btn_gerar_solucao"):
         with st.spinner("Gerando solução técnica com IA..."):
             prompt_solucao = f"""
-            Você é um arquiteto de soluções. Com base nos objetivos abaixo, descreva uma proposta técnica de solução baseada em Data Science. Inclua tecnologias, abordagem, possíveis fontes de dados e etapas de desenvolvimento. Sugira também quais ferramentas, softwares ou frameworks da IBM poderiam ser utilizados.
+            Você é um arquiteto de soluções. Com base nos objetivos abaixo, descreva uma proposta técnica de solução baseada em Data Science.
+            Inclua tecnologias, abordagem, possíveis fontes de dados e etapas de desenvolvimento.
+            Sugira também quais ferramentas, softwares ou frameworks da IBM poderiam ser utilizados.
             Se houver tecnologias que não são da IBM porém a IBM também usa ou são compatíveis com o ecossitema da IBM sigura também.
+            Não sugira a linguage R, somente Python, SQL, JavaScript, Java, Scala, Rust, C++ e C#.
 
             Objetivos:
             {objetivos_base}

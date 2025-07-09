@@ -4,11 +4,16 @@ import json
 import os
 from utils.navigation import render_sidebar
 from datetime import datetime
-from fpdf import FPDF
+from fpdf import FPDF, HTMLMixin
+import markdown2
 import pandas as pd
 
 SALVAMENTO_DIR = "simulacoes_salvas"
 os.makedirs(SALVAMENTO_DIR, exist_ok=True)
+
+
+class PDF(FPDF, HTMLMixin):
+    pass
 
 
 def gerar_pdf():
@@ -20,7 +25,7 @@ def gerar_pdf():
             r"[^\x20-\x7E\u00A0-\u00FF]", "", texto
         )  # remove caracteres não imprimíveis
 
-    pdf = FPDF()
+    pdf = PDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
 
@@ -29,40 +34,21 @@ def gerar_pdf():
         pdf.cell(0, 10, titulo, ln=True)
         pdf.set_font("Arial", size=12)
 
-    def add_texto(texto):
-        def quebrar_palavras_longa(linha, max_len=60):
-            import re
-
-            palavras = re.split(r"(\s+)", linha)  # mantém os espaços
-            quebradas = []
-            for palavra in palavras:
-                if len(palavra) > max_len and palavra.strip() != "":
-                    for i in range(0, len(palavra), max_len):
-                        quebradas.append(palavra[i : i + max_len])
-                else:
-                    quebradas.append(palavra)
-            return "".join(quebradas)
-
-        texto = limpar_texto(texto)
-        for linha in texto.split("\n"):
-            linha = quebrar_palavras_longa(linha)
-            try:
-                pdf.multi_cell(0, 8, linha)
-            except Exception as e:
-                print(f"Erro ao processar linha: {repr(linha)}")
-                raise e
-        pdf.ln(5)
+    def add_texto_markdown(texto_md):
+        html = markdown2.markdown(texto_md)
+        html = html.replace("<ul>", "").replace("</ul>", "")  # fpdf2 não lida com <ul>
+        pdf.write_html(html)
 
     add_titulo("Proposta Técnica de Projeto de Data Science")
 
     add_titulo("1. Diagnóstico")
-    add_texto(st.session_state.get("resultado_diagnostico", ""))
+    add_texto_markdown(st.session_state.get("resultado_diagnostico", ""))
 
     add_titulo("2. Objetivos")
-    add_texto(st.session_state.get("objetivos", ""))
+    add_texto_markdown(st.session_state.get("objetivos", ""))
 
     add_titulo("3. Solução Técnica")
-    add_texto(st.session_state.get("solucao_tecnica", ""))
+    add_texto_markdown(st.session_state.get("solucao_tecnica", ""))
 
     add_titulo("4. Cronograma e Custo")
     cronograma_df = st.session_state.get("cronograma_df")
@@ -86,7 +72,7 @@ def gerar_pdf():
     pdf.ln(5)
 
     add_titulo("6. Premissas e Limitações")
-    add_texto(st.session_state.get("premissas_limitacoes", ""))
+    add_texto_markdown(st.session_state.get("premissas_limitacoes", ""))
 
     nome_arquivo = f"proposta_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     caminho = os.path.join(SALVAMENTO_DIR, nome_arquivo)

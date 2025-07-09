@@ -23,107 +23,73 @@ def gerar_cronograma_ia_openai(diagnostico, objetivos, meses, profissionais_ia):
         prompt = f"""
         Você é um especialista em planejamento de projetos de Data Science.
 
-        Sua tarefa é gerar um cronograma em JSON ESTRITAMENTE válido e limpo, SEM QUALQUER TEXTO ou EXPLICAÇÃO ao redor.
-
-        Formato esperado:
-        [
-            {{
-                "Mês": 1,
-                "Profissional": "Cientista de Dados",
-                "Horas": 160
-            }},
-            ...
-        ]
-
-        ⚠️ INSTRUÇÕES OBRIGATÓRIAS:
-        - Use SOMENTE os profissionais desta lista: {', '.join(profissionais_ia)}
-        - Use SOMENTE os profissionais desta lista, exatamente como escrito: "Gerente de Projetos", "Cientista de Dados Pl", "Eng. de Dados PL"
-        - NÃO reescreva, traduz ou modifique esses nomes. Use-os exatamente como estão.
-        - Estrutura EXATA: Mês (int), Profissional (string), Horas (int)
-        - NÃO insira explicações, markdown, comentários, reticências, introduções ou encerramentos
-        - NÃO use blocos ```json ou qualquer formatação adicional
-        - Gere a combinação completa de {meses} meses com TODOS os profissionais listados. Mesmo que um profissional não atue em um mês, inclua com "Horas": 0.
-        - SUA RESPOSTA DEVE SER APENAS O JSON BRUTO
-
         Diagnóstico: {diagnostico}
         Objetivos: {objetivos}
+        Duração: {meses} meses
+        Profissionais envolvidos: {', '.join(profissionais_ia)}
+
+        Sua tarefa é sugerir a quantidade de horas que cada profissional deve trabalhar em cada mês.
+
+        Formato esperado (apenas a matriz de inteiros, sem explicações):
+
+        [
+          [Horas do profissional 1 no mês 1, mês 2, ..., mês {meses}],
+          [Horas do profissional 2 no mês 1, mês 2, ..., mês {meses}],
+          ...
+        ]
+
+        ⚠️ A ordem dos profissionais deve ser: {', '.join(profissionais_ia)}
+        ⚠️ Apenas a matriz. Nenhum comentário, texto ou explicação adicional.
         """
 
         resposta = gerar_resposta_ollama(prompt, temperature=0.5)
 
-        # Pré-processamento robusto da resposta
-        def clean_json_string(json_str):
-            # Remove comentários e blocos markdown
-            json_str = re.sub(r"```[\s\S]*?```", "", json_str)  # blocos markdown
-            json_str = re.sub(r"//.*?\n", "", json_str)  # comentários de linha
-            json_str = re.sub(
-                r"/\*.*?\*/", "", json_str, flags=re.DOTALL
-            )  # comentários de bloco
+        # Extrai a matriz de horas da resposta
+        matriz_match = re.search(r"\[\s*\[.*?\]\s*\]", resposta, re.DOTALL)
+        if not matriz_match:
+            raise ValueError("Nenhuma matriz válida encontrada na resposta da IA")
 
-            # Remove reticências e etc
-            json_str = (
-                json_str.replace("...", "")
-                .replace("…", "")
-                .replace("etc.", "")
-                .replace("etc", "")
-            )
+        matriz_str = matriz_match.group(0)
+        matriz = json.loads(matriz_str)
 
-            # Corrige vírgulas antes de colchete ou chave
-            json_str = re.sub(r",\s*\]", "]", json_str)
-            json_str = re.sub(r",\s*\}", "}", json_str)
-
-            # Garante que não há lixo antes/depois
-            json_str = json_str.strip()
-
-            return json_str
-
-        json_match = re.search(r"\[\s*\{.*\}\s*\]", resposta, re.DOTALL)
-        if not json_match:
-            raise ValueError("Nenhum JSON válido encontrado na resposta da IA")
-
-        json_str = clean_json_string(json_match.group(0))
-
-        if not json_str.startswith("[") or not json_str.endswith("]"):
+        if len(matriz) != len(profissionais_ia):
             raise ValueError(
-                "Estrutura JSON inválida - deve começar com [ e terminar com ]"
+                f"A IA retornou {len(matriz)} linhas, mas {len(profissionais_ia)} profissionais foram selecionados."
             )
 
-        try:
-            data = json.loads(json_str)
-        except json.JSONDecodeError as e:
-            st.error(f"Erro de decodificação JSON na posição {e.pos}: {e.msg}")
-            st.text_area(
-                "Conteúdo problemático:",
-                value=json_str[e.pos - 50 : e.pos + 50],
-                height=100,
+        # Monta o DataFrame de cronograma
+        data = []
+        for i, profissional in enumerate(profissionais_ia):
+            horas_por_mes = matriz[i]
+            if len(horas_por_mes) != meses:
+                raise ValueError(
+                    f"O profissional '{profissional}' não tem {meses} meses de dados."
+                )
+            custo_hora = next(
+                (
+                    p["custo_hora"]
+                    for p in PROFISSIONAIS_DISPONIVEIS
+                    if p["cargo"] == profissional
+                ),
+                None,
             )
-            raise ValueError("JSON inválido após limpeza") from e
+            if custo_hora is None:
+                raise ValueError(
+                    f"Custo por hora não encontrado para profissional: {profissional}"
+                )
+            for mes in range(1, meses + 1):
+                horas = horas_por_mes[mes - 1]
+                data.append(
+                    {
+                        "Mês": mes,
+                        "Profissional": profissional,
+                        "Horas": horas,
+                        "Custo Hora": custo_hora,
+                        "Custo Total": horas * custo_hora,
+                    }
+                )
 
         df = pd.DataFrame(data)
-
-        # Validações
-        required_columns = {"Mês", "Profissional", "Horas"}
-        if not required_columns.issubset(df.columns):
-            missing = required_columns - set(df.columns)
-            raise ValueError(f"Colunas obrigatórias faltando: {missing}")
-
-        profissionais_validos = set(profissionais_ia)
-        profissionais_invalidos = set(df["Profissional"]) - profissionais_validos
-        if profissionais_invalidos:
-            raise ValueError(
-                f"Profissionais inválidos: {', '.join(profissionais_invalidos)}"
-            )
-
-        df["Custo Hora"] = df["Profissional"].map(
-            {p["cargo"]: p["custo_hora"] for p in PROFISSIONAIS_DISPONIVEIS}
-        )
-        df["Custo Total"] = df["Horas"] * df["Custo Hora"]
-
-        if len(df["Mês"].unique()) != meses:
-            raise ValueError(
-                f"Quantidade de meses incorreta. Esperado: {meses}, Recebido: {len(df['Mês'].unique())}"
-            )
-
         return df
 
     except Exception as e:
