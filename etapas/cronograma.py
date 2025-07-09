@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 from utils.navigation import render_sidebar
-from utils.llm import gerar_resposta_ollama
+from utils.llm import gerar_resposta_ollama, gerar_resposta_watsonx
 import json
 import re
 
@@ -42,7 +42,11 @@ def gerar_cronograma_ia_openai(diagnostico, objetivos, meses, profissionais_ia):
         ⚠️ Apenas a matriz. Nenhum comentário, texto ou explicação adicional.
         """
 
-        resposta = gerar_resposta_ollama(prompt, temperature=0.5)
+        resposta = gerar_resposta_watsonx(
+            prompt,
+            temperature=0.5,
+            max_tokens=1024,
+        )
 
         # Extrai a matriz de horas da resposta
         matriz_match = re.search(r"\[\s*\[.*?\]\s*\]", resposta, re.DOTALL)

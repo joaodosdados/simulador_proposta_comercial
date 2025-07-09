@@ -3,7 +3,7 @@ from utils.benchmark_loader import carregar_benchmark
 from PyPDF2 import PdfReader
 import docx
 from utils.navigation import render_sidebar, ETAPAS
-from utils.llm import gerar_resposta_ollama
+from utils.llm import gerar_resposta_ollama, gerar_resposta_watsonx
 
 
 def extract_text_from_file(uploaded_file):
@@ -128,7 +128,11 @@ def render():
                     "   - A saída deve ser em português Brasileiro\n\n"
                     f"Conteúdo:\n{texto_extraido.strip()}"
                 )
-                resultado = gerar_resposta_ollama(prompt)
+                resultado = gerar_resposta_watsonx(
+                    prompt,
+                    temperature=0.5,
+                    max_tokens=1024,
+                )
                 oportunidades = [
                     l for l in resultado.splitlines() if l.strip().startswith("-")
                 ]

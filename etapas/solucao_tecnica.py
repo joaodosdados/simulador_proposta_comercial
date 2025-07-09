@@ -2,7 +2,7 @@
 # Arquivo: solucao_tecnica.py
 import streamlit as st
 from utils.navigation import render_sidebar, ETAPAS
-from utils.llm import gerar_resposta_ollama
+from utils.llm import gerar_resposta_ollama, gerar_resposta_watsonx
 
 
 def render():
@@ -82,7 +82,11 @@ def render():
 
             Responda com clareza, de forma estruturada. Em portugues do Brasil, brasileiro
             """
-            solucao_gerada = gerar_resposta_ollama(prompt_solucao)
+            solucao_gerada = gerar_resposta_watsonx(
+                prompt_solucao,
+                temperature=0.5,
+                max_tokens=1024,
+            )
             st.session_state.solucao_tecnica = solucao_gerada
             st.success("Solução técnica gerada com sucesso!")
 

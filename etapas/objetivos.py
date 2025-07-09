@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.llm import gerar_resposta_ollama
+from utils.llm import gerar_resposta_ollama, gerar_resposta_watsonx
 
 
 def render():
@@ -137,7 +137,11 @@ def render():
             4. Formato: "- [Objetivo] - [Justificativa baseada no diagnóstico]"
             5. Retorne o texto em portugues Brasil, brasileiro, sem formatação HTML ou Markdown
             """
-            objetivos = gerar_resposta_ollama(prompt)
+            objetivos = gerar_resposta_watsonx(
+                prompt,
+                temperature=0.5,
+                max_tokens=1024,
+            )
             st.session_state.objetivos = objetivos
             st.success("Objetivos gerados com sucesso!")
             st.rerun()
