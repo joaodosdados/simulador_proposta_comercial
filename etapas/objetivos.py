@@ -66,7 +66,7 @@ def render():
         st.markdown(
             f"""
         <div class="info-card">
-            <div class="info-label">Oportunidades identificadas</div>
+            <div class="info-label">Opportunities identified</div>
             <div class="info-value">{st.session_state.get('qtd_oportunidades', 0)}</div>
         </div>
         """,
@@ -74,11 +74,11 @@ def render():
         )
 
     with col2:
-        status = "Definidos" if st.session_state.get("objetivos") else "Pendentes"
+        status = "Defined" if st.session_state.get("objetivos") else "Pending"
         st.markdown(
             f"""
         <div class="info-card">
-            <div class="info-label">Status dos objetivos</div>
+            <div class="info-label">Status of objectives</div>
             <div class="info-value">{status}</div>
         </div>
         """,
@@ -90,52 +90,55 @@ def render():
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(
-            '<div class="comparison-title">📋 Diagnóstico Original</div>',
+            '<div class="comparison-title">📋 Original Diagnosis</div>',
             unsafe_allow_html=True,
         )
         st.text_area(
-            label="Diagnóstico Original",
+            label="Original Diagnosis",
             value=st.session_state.get(
-                "resultado_diagnostico", "Nenhum diagnóstico disponível."
+                "resultado_diagnostico", "No diagnosis available."
             ),
-            height=300,
+            height=450,
             disabled=False,
             label_visibility="collapsed",
         )
 
     with col2:
         st.markdown(
-            '<div class="comparison-title">🎯 Objetivos Propostos</div>',
+            '<div class="comparison-title">🎯 Proposed Objectives</div>',
             unsafe_allow_html=True,
         )
         objetivos = st.text_area(
             "Objetivos:",
-            value=st.session_state.get("objetivos", "Nenhum objetivo definido ainda."),
-            height=300,
+            value=st.session_state.get("objetivos", "No goals defined yet."),
+            height=450,
             label_visibility="collapsed",
         )
-        if objetivos != st.session_state.get("objetivos", ""):
+        if objetivos != st.session_state.get("objectives", ""):
             st.session_state.objetivos = objetivos
 
     # Seção de geração de objetivos
     st.markdown(
-        '<div class="section-title">Gerar objetivos automaticamente</div>',
+        '<div class="section-title">Generate goals automatically</div>',
         unsafe_allow_html=True,
     )
 
-    if st.button("⚙️ Gerar objetivos com IA", type="primary"):
-        with st.spinner("Analisando oportunidades..."):
+    if st.button("⚙️ Generate objectives with IA", type="primary"):
+        with st.spinner("Analyzing oportunities..."):
             texto_base = st.session_state.get("resultado_diagnostico", "")
             prompt = f"""
-            Analise este diagnóstico e gere objetivos SMART específicos:
-            
+            You are a specialist in defining SMART objectives for business diagnostics.
+
+            Analyze the diagnostic text below and generate ONLY specific, clear SMART objectives that are explicitly mentioned or clearly derivable from the text.
+
             {texto_base}
-            
-            Regras:
-            1. Liste objetivos claros
-            2. Relacione cada objetivo com itens do diagnóstico
-            4. Formato: "- [Objetivo] - [Justificativa baseada no diagnóstico]"
-            5. Retorne o texto em portugues Brasil, brasileiro, sem formatação HTML ou Markdown
+
+            Rules:
+            - Provide only objectives that are explicitly supported by the diagnostic content; do not invent or infer details
+            - If no quantitative goal (percentages, timeframes) is provided in the diagnostic, describe the objective qualitatively, without adding fictitious numbers
+            - One objective per line, following the format: "- Objective: SMART Justification"
+            - Output strictly in English (USA), formal executive tone
+            - Do NOT include any HTML, Markdown, explanations, summaries, or extra text before or after the list
             """
             objetivos = gerar_resposta_watsonx(
                 prompt,
@@ -143,12 +146,12 @@ def render():
                 max_tokens=1024,
             )
             st.session_state.objetivos = objetivos
-            st.success("Objetivos gerados com sucesso!")
+            st.success("Goals successfully generated!")
             st.rerun()
 
-    # Rodapé
+    # Footer
     st.markdown("---")
     if st.session_state.get("objetivos"):
-        st.success("✅ Objetivos definidos - Você pode prosseguir para a próxima etapa")
+        st.success("✅ Objectives defined - You can proceed to the next step")
     else:
-        st.warning("⚠️ Defina os objetivos antes de continuar")
+        st.warning("⚠️ Please define the objectives before continuing")

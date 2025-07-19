@@ -61,44 +61,44 @@ def render():
     """,
         unsafe_allow_html=True,
     )
-    st.subheader("⚠️ Etapa 6: Premissas e Limitações")
+    st.subheader("⚠️ Etapa 6: Premises and Limitations")
 
-    objetivos = st.session_state.get("objetivos", "Objetivos não definidos.")
-    solucao = st.session_state.get("solucao_tecnica", "Solução técnica não definida.")
+    objetivos = st.session_state.get("objetivos", "Undefined objectives.")
+    solucao = st.session_state.get("solucao_tecnica", "Technical solution not defined.")
 
-    st.text_area("Objetivos do Projeto:", value=objetivos, height=150, disabled=False)
-    st.text_area("Solução Técnica:", value=solucao, height=150, disabled=False)
+    st.text_area("Project Objective:", value=objetivos, height=150, disabled=False)
+    st.text_area("Technical Solution:", value=solucao, height=150, disabled=False)
 
-    if st.button("⚙️ Gerar Premissas e Limitações com IA"):
-        with st.spinner("Gerando recomendações de premissas e limitações..."):
+    if st.button("⚙️ Generating Assumptions and Constraints with AI"):
+        with st.spinner(
+            "Generating recommendations from assumptions and limitations..."
+        ):
             prompt = f"""
-            Você é um consultor especialista em propostas técnicas de Data Science. Seu papel é identificar premissas técnicas e operacionais, bem como limitações e riscos para um projeto.
+            You are a consultant specializing in technical Data Science proposals. Your role is to identify technical and operational assumptions, as well as limitations and risks for a project.
 
-            Use os objetivos e a solução técnica abaixo como base:
+            Use the objectives and technical solution below as your basis:
 
-            Objetivos:
+            Objectives:
             {objetivos}
 
-            Solução Técnica:
+            Technical Solution:
             {solucao}
 
-            Liste:
-            - Premissas operacionais (dados, acessos, permissões, sistemas...)
-            - Limitações do escopo (integrações, sistemas legados, não inclusões...)
-            - Alertas de risco e salvaguardas contratuais
-            
-            Retorne o texto em português Brasileiro
+            List:
+            - Operational assumptions (data, access, permissions, systems, etc.)
+            - Scope limitations (integrations, legacy systems, exclusions, etc.)
+            - Risk alerts and contractual safeguards
+            - Compliance and data protection aspects (e.g., GDPR, LGPD), highlighting risks and recommendations
+
+            Return the text in formal US English.
             """
 
             resultado = gerar_resposta_ollama(prompt)
             st.session_state.premissas_limitacoes = resultado
-            st.success("Texto gerado com sucesso!")
+            st.success("Text generated successfully!")
 
     texto = st.session_state.get("premissas_limitacoes", "")
-    st.markdown("**Premissas e Limitações:**")
+    st.markdown("**Premises and Limitations:**")
     st.text_area(
-        "Resultado:", value=texto, height=300, key="textarea_restricoes", disabled=False
+        "Results:", value=texto, height=300, key="textarea_restricoes", disabled=False
     )
-
-    if st.button("🔁 Atualizar Texto"):
-        st.session_state.premissas_limitacoes = st.session_state.textarea_restricoes
