@@ -8,38 +8,38 @@ import json
 import re
 
 PROFISSIONAIS_DISPONIVEIS = [
-    {"cargo": "Gerente de Projetos", "custo_hora": 369.68},
+    {"cargo": "Project Manager", "custo_hora": 369.68},
     {"cargo": "Scrum Master", "custo_hora": 254.48},
-    {"cargo": "Arquiteto", "custo_hora": 394.38},
-    {"cargo": "Analista de Negócios", "custo_hora": 192.26},
-    {"cargo": "Desenvolvedor", "custo_hora": 192.26},
-    {"cargo": "Cientista de Dados", "custo_hora": 227.37},
-    {"cargo": "Eng. de Dados", "custo_hora": 227.37},
+    {"cargo": "Architect", "custo_hora": 394.38},
+    {"cargo": "Business Analyst", "custo_hora": 192.26},
+    {"cargo": "Developer", "custo_hora": 192.26},
+    {"cargo": "Data Scientist", "custo_hora": 227.37},
+    {"cargo": "Data Engineer", "custo_hora": 227.37},
 ]
 
 
 def gerar_cronograma_ia_openai(diagnostico, objetivos, meses, profissionais_ia):
     try:
         prompt = f"""
-        Você é um especialista em planejamento de projetos de Data Science.
+        You are a specialist in Data Science project planning.
 
-        Diagnóstico: {diagnostico}
-        Objetivos: {objetivos}
-        Duração: {meses} meses
-        Profissionais envolvidos: {', '.join(profissionais_ia)}
+        Diagnostic: {diagnostico}
+        Objectives: {objetivos}
+        Duration: {meses} months
+        Involved professionals: {', '.join(profissionais_ia)}
 
-        Sua tarefa é sugerir a quantidade de horas que cada profissional deve trabalhar em cada mês.
+        Your task is to suggest the number of hours each professional should work in each month.
 
-        Formato esperado (apenas a matriz de inteiros, sem explicações):
+        Expected format (only the integer matrix, no explanations):
 
         [
-          [Horas do profissional 1 no mês 1, mês 2, ..., mês {meses}],
-          [Horas do profissional 2 no mês 1, mês 2, ..., mês {meses}],
-          ...
+        [Hours for professional 1 in month 1, month 2, ..., month {meses}],
+        [Hours for professional 2 in month 1, month 2, ..., month {meses}],
+        ...
         ]
 
-        ⚠️ A ordem dos profissionais deve ser: {', '.join(profissionais_ia)}
-        ⚠️ Apenas a matriz. Nenhum comentário, texto ou explicação adicional.
+        ⚠️ The order of professionals must be: {', '.join(profissionais_ia)}
+        ⚠️ Only the matrix. No comments, text, or additional explanations.
         """
 
         resposta = gerar_resposta_watsonx(
@@ -51,14 +51,14 @@ def gerar_cronograma_ia_openai(diagnostico, objetivos, meses, profissionais_ia):
         # Extrai a matriz de horas da resposta
         matriz_match = re.search(r"\[\s*\[.*?\]\s*\]", resposta, re.DOTALL)
         if not matriz_match:
-            raise ValueError("Nenhuma matriz válida encontrada na resposta da IA")
+            raise ValueError("No valid array found in AI response")
 
         matriz_str = matriz_match.group(0)
         matriz = json.loads(matriz_str)
 
         if len(matriz) != len(profissionais_ia):
             raise ValueError(
-                f"A IA retornou {len(matriz)} linhas, mas {len(profissionais_ia)} profissionais foram selecionados."
+                f"AI returned {len(matriz)} rows, but {len(profissionais_ia)} professionals were selected."
             )
 
         # Monta o DataFrame de cronograma
@@ -67,7 +67,7 @@ def gerar_cronograma_ia_openai(diagnostico, objetivos, meses, profissionais_ia):
             horas_por_mes = matriz[i]
             if len(horas_por_mes) != meses:
                 raise ValueError(
-                    f"O profissional '{profissional}' não tem {meses} meses de dados."
+                    f"The professional '{profissional}' does not have {meses} months of data."
                 )
             custo_hora = next(
                 (
@@ -79,7 +79,7 @@ def gerar_cronograma_ia_openai(diagnostico, objetivos, meses, profissionais_ia):
             )
             if custo_hora is None:
                 raise ValueError(
-                    f"Custo por hora não encontrado para profissional: {profissional}"
+                    f"Hourly cost not found for professional: {profissional}"
                 )
             for mes in range(1, meses + 1):
                 horas = horas_por_mes[mes - 1]
@@ -97,8 +97,8 @@ def gerar_cronograma_ia_openai(diagnostico, objetivos, meses, profissionais_ia):
         return df
 
     except Exception as e:
-        st.error(f"Erro ao interpretar resposta da IA: {e}")
-        st.text_area("Resposta bruta recebida da IA:", value=resposta, height=300)
+        st.error(f"Error interpreting AI response: {e}")
+        st.text_area("Raw response received from AI:", value=resposta, height=300)
         return pd.DataFrame(
             columns=["Mês", "Profissional", "Horas", "Custo Hora", "Custo Total"]
         )
@@ -126,7 +126,7 @@ def gerar_dataframe_inicial(meses, profissionais):
 
 
 def render():
-    st.subheader("🗓️ Etapa 4: Cronograma do Projeto")
+    st.subheader("🗓️ Stage 4: Project Timeline")
 
     # Inicialização robusta do session_state
     required_keys = {
@@ -145,12 +145,12 @@ def render():
             st.session_state[key] = default_value
 
     # Seção de configuração do projeto
-    with st.expander("⚙️ Configuração do Projeto", expanded=True):
+    with st.expander("⚙️ Project Configure", expanded=True):
         col1, col2 = st.columns(2)
 
         with col1:
             modelo_comercial = st.selectbox(
-                "Modelo Comercial:",
+                "Commercial Model:",
                 options=["Fixed-price", "Time & Materials"],
                 index=0 if st.session_state.modelo_comercial == "Fixed-price" else 1,
                 key="select_modelo_comercial",
@@ -158,7 +158,7 @@ def render():
 
         with col2:
             meses = st.slider(
-                "Duração (meses):",
+                "Duration (months):",
                 min_value=1,
                 max_value=24,
                 value=st.session_state.last_meses,
@@ -166,7 +166,7 @@ def render():
             )
 
         profissionais_selecionados = st.multiselect(
-            "Profissionais envolvidos:",
+            "Professionals:",
             options=[p["cargo"] for p in PROFISSIONAIS_DISPONIVEIS],
             default=st.session_state.last_profissionais,
             key="multiselect_profissionais",
@@ -181,10 +181,8 @@ def render():
 
     # Botão para forçar atualização quando parâmetros mudam
     if parametros_alterados:
-        st.warning(
-            "⚠️ Parâmetros alterados. Clique em 'Atualizar Cronograma' para aplicar."
-        )
-        if st.button("🔄 Atualizar Cronograma", key="force_update"):
+        st.warning("⚠️ Parameters changed. Click 'Update Schedule' to apply.")
+        if st.button("🔄 Update Schedule", key="force_update"):
             st.session_state.cronograma_df = gerar_dataframe_inicial(
                 meses, profissionais_selecionados
             )
@@ -194,7 +192,7 @@ def render():
             st.session_state.force_grid_update = True  # Ativa a flag
             st.rerun()
     else:
-        if st.button("🔄 Atualizar Cronograma", key="normal_update"):
+        if st.button("🔄 Update Schedule", key="normal_update"):
             st.session_state.cronograma_df = gerar_dataframe_inicial(
                 meses, profissionais_selecionados
             )
@@ -202,7 +200,7 @@ def render():
             st.rerun()
 
     # Botão de geração por IA
-    if st.button("✨ Gerar Sugestão com IA"):
+    if st.button("✨ Generate Suggestion with AI"):
         objetivos = st.session_state.get("objetivos", "")
         diagnostico = st.session_state.get("resultado_diagnostico", "")
         profissionais_selecionados = st.session_state.get(
@@ -220,7 +218,7 @@ def render():
             st.rerun()
         else:
             st.warning(
-                "⚠️ A IA não retornou um cronograma válido. Verifique a resposta acima."
+                "⚠️ The AI did not return a valid timeline. Please check the response above."
             )
 
     # Seção de valores financeiros com destaque
@@ -282,7 +280,7 @@ def render():
                 st.markdown(
                     f"""
                 <div class="financial-card">
-                    <div class="financial-title">Custo Base Total</div>
+                    <div class="financial-title">Total Base Cost</div>
                     <div class="financial-value">R$ {custo_total:,.2f}</div>
                 </div>
                 """,
@@ -294,7 +292,7 @@ def render():
                     st.markdown(
                         f"""
                     <div class="financial-card">
-                        <div class="financial-title">Preço Final (+{margem}%)</div>
+                        <div class="financial-title">Final Price(+{margem}%)</div>
                         <div class="financial-value">R$ {preco_final:,.2f}</div>
                     </div>
                     """,
@@ -304,7 +302,7 @@ def render():
                     st.markdown(
                         f"""
                     <div class="financial-card">
-                        <div class="financial-title">Estimativa T&M</div>
+                        <div class="financial-title">T&M Estimate</div>
                         <div class="financial-value">R$ {preco_final:,.2f}</div>
                     </div>
                     """,
@@ -316,7 +314,7 @@ def render():
                 st.markdown(
                     f"""
                 <div class="financial-card">
-                    <div class="financial-title">Horas Totais</div>
+                    <div class="financial-title">Total Hours</div>
                     <div class="financial-value">{horas_totais:,.0f}h</div>
                 </div>
                 """,
@@ -336,9 +334,7 @@ def render():
             )
         ].copy()
 
-        tab1, tab2, tab3 = st.tabs(
-            ["📋 Tabela Editável", "📊 Visualizações", "📅 Linha do Tempo"]
-        )
+        tab1, tab2, tab3 = st.tabs(["📋 Editable Table", "📊 Views", "📅 Timeline"])
 
         with tab1:
             # Configuração da tabela interativa
@@ -372,13 +368,13 @@ def render():
             if grid_response["data"] is not None:
                 df_editado = pd.DataFrame(grid_response["data"])
 
-                if st.button("💾 Salvar Alterações", key="salvar_alteracoes"):
+                if st.button("💾 Save Changes", key="salvar_alteracoes"):
                     df_editado["Custo Total"] = (
                         df_editado["Horas"] * df_editado["Custo Hora"]
                     )
                     st.session_state.cronograma_df = df_editado
                     st.session_state.salvar_alteracoes_pendente = True
-                    st.success("✅ Alterações salvas!")
+                    st.success("✅ Changes Saved!")
                     st.rerun()
 
             # Recalcular valores totais após rerun
@@ -528,7 +524,7 @@ def render():
     # Botão de exportação (só aparece se houver dados)
     if not st.session_state.cronograma_df.empty:
         st.download_button(
-            "💾 Exportar Cronograma (CSV)",
+            "💾 Export Timeline (CSV)",
             data=st.session_state.cronograma_df.to_csv(index=False, sep=";").encode(
                 "utf-8"
             ),
@@ -539,6 +535,4 @@ def render():
 
     # Mensagem inicial se não houver dados
     if st.session_state.cronograma_df.empty:
-        st.info(
-            "ℹ️ Configure os parâmetros e clique em 'Atualizar Cronograma' para começar"
-        )
+        st.info("ℹ️ Configure the parameters and click 'Update Schedule' to begin")

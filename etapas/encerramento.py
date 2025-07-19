@@ -39,18 +39,18 @@ def gerar_pdf():
         html = html.replace("<ul>", "").replace("</ul>", "")  # fpdf2 não lida com <ul>
         pdf.write_html(html)
 
-    add_titulo("Proposta Técnica de Projeto de Data Science")
+    add_titulo("Technical Proposal for Data Science Project")
 
-    add_titulo("1. Diagnóstico")
+    add_titulo("1. Diagnosis")
     add_texto_markdown(st.session_state.get("resultado_diagnostico", ""))
 
-    add_titulo("2. Objetivos")
+    add_titulo("2. Objectives")
     add_texto_markdown(st.session_state.get("objetivos", ""))
 
-    add_titulo("3. Solução Técnica")
+    add_titulo("3. Technical Solution")
     add_texto_markdown(st.session_state.get("solucao_tecnica", ""))
 
-    add_titulo("4. Cronograma e Custo")
+    add_titulo("4. Timeline and Cost")
     cronograma_df = st.session_state.get("cronograma_df")
     if cronograma_df is not None and not cronograma_df.empty:
         pdf.set_font("Arial", size=10)
@@ -81,52 +81,50 @@ def gerar_pdf():
 
 
 def render():
-    st.subheader("✅ Etapa 7: Encerramento e Exportação da Proposta")
+    st.subheader("✅ Stage 7: Proposal Closure and Export")
 
     preco_final = st.session_state.get("total_com_adicional", 0.0)
-    st.markdown("### 💰 Preço Final Estimado")
+    st.markdown("### 💰 Estimated Final Price")
     st.markdown(f"## `R$ {preco_final:,.2f}`")
 
     st.markdown("---")
-    st.markdown("### 1. Diagnóstico")
+    st.markdown("### 1. Diagnosis")
     st.text_area(
-        "Descreva o diagnóstico realizado:",
+        "Describe the diagnosis made:",
         value=st.session_state.get("resultado_diagnostico", ""),
         height=150,
         key="resultado_diagnostico",
     )
 
-    st.markdown("### 2. Objetivos")
+    st.markdown("### 2. Objectives")
     st.text_area(
-        "Defina os objetivos do projeto:",
+        "Define the project objectives:",
         value=st.session_state.get("objetivos", ""),
         height=150,
         key="objetivos",
     )
 
-    st.markdown("### 3. Solução Técnica")
+    st.markdown("### 3. Technical Solution")
     st.text_area(
-        "Descreva a solução técnica proposta:",
+        "Describe the proposed technical solution:",
         value=st.session_state.get("solucao_tecnica", ""),
         height=150,
         key="solucao_tecnica",
     )
 
-    st.markdown("### 4. Cronograma e Custo")
+    st.markdown("### 4. Timeline and Cost")
     if "cronograma_df" in st.session_state:
         st.dataframe(st.session_state.cronograma_df, use_container_width=True)
+        st.markdown(f"**Total Cost:** R$ {st.session_state.get('total_geral', 0):,.2f}")
         st.markdown(
-            f"**Custo Total:** R$ {st.session_state.get('total_geral', 0):,.2f}"
-        )
-        st.markdown(
-            f"**Preço Final Estimado com adicional:** R$ {st.session_state.get('total_com_adicional', 0):,.2f}"
+            f"**Estimated Final Price with additional:** R$ {st.session_state.get('total_com_adicional', 0):,.2f}"
         )
     else:
-        st.info("Nenhum cronograma foi definido.")
+        st.info("No timeline has been set.")
 
-    st.markdown("### 5. Modelo Comercial")
+    st.markdown("### 5. Commercial Model")
     proposta_tipo = st.selectbox(
-        "Selecione o tipo de proposta comercial:",
+        "Select the type of commercial proposal:",
         options=["Fixed-price", "Time & Materials"],
         index=["Fixed-price", "Time & Materials"].index(
             st.session_state.get("proposta_tipo", "Fixed-price")
@@ -134,48 +132,46 @@ def render():
     )
     st.session_state.proposta_tipo = proposta_tipo
 
-    st.markdown("### 6. Premissas e Limitações")
+    st.markdown("### 6. Premises and Limitations")
     st.text_area(
-        "Liste premissas e limitações relevantes:",
+        "List relevant assumptions and limitations:",
         value=st.session_state.get("premissas_limitacoes", ""),
         height=150,
         key="premissas_limitacoes",
     )
 
     st.markdown("---")
-    st.markdown("### 💾 Salvar ou Carregar Simulação")
+    st.markdown("### 💾 Save or Load Simulation")
 
-    if st.button("💾 Salvar Simulação em JSON"):
+    if st.button("💾 Save Simulation in JSON"):
         file_name = f"simulacao_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         json_data = json.dumps(dict(st.session_state), indent=2, default=str)
         file_path = os.path.join(SALVAMENTO_DIR, file_name)
         with open(file_path, "w") as f:
             f.write(json_data)
-        st.success(f"Simulação salva com sucesso em `{file_path}`")
+        st.success(f"Simulation saved successfully in `{file_path}`")
         with open(file_path, "rb") as f:
             st.download_button(
                 "📥 Baixar JSON", data=f, file_name=file_name, mime="application/json"
             )
 
     uploaded_file = st.file_uploader(
-        "📂 Carregar simulação anterior (.json)", type=["json"]
+        "📂 Load previous simulation (.json)", type=["json"]
     )
     if uploaded_file:
         data = json.load(uploaded_file)
         for key, value in data.items():
             st.session_state[key] = value
-        st.success(
-            "Simulação carregada com sucesso! Recarregue a página para ver as atualizações."
-        )
+        st.success("Simulation loaded successfully! Reload the page to see updates.")
 
     st.markdown("---")
-    st.markdown("### 📄 Exportar Proposta em PDF")
-    if st.button("📄 Gerar PDF da Proposta"):
-        with st.spinner("Gerando PDF..."):
+    st.markdown("### 📄 Export to PDF")
+    if st.button("📄 Generate Proposal PDF"):
+        with st.spinner("Generating PDF..."):
             caminho_pdf = gerar_pdf()
             with open(caminho_pdf, "rb") as f:
                 st.download_button(
-                    label="📥 Baixar PDF",
+                    label="📥 Download PDF",
                     data=f,
                     file_name=os.path.basename(caminho_pdf),
                     mime="application/pdf",

@@ -62,25 +62,31 @@ def render():
     """,
         unsafe_allow_html=True,
     )
-    st.subheader("🛠️ Etapa 3: Solução Técnica")
+    st.subheader("🛠️ Etapa 3: Technical Solution")
 
-    objetivos_base = st.session_state.get("objetivos", "Objetivos ainda não definidos.")
-    st.markdown("**Objetivos definidos:**")
-    st.text_area("Objetivos:", value=objetivos_base, height=200, disabled=False)
+    objetivos_base = st.session_state.get("objetivos", "Objectives not yet defined.")
+    st.markdown("**Defined objectives:**")
+    st.text_area("Objectivies:", value=objetivos_base, height=300, disabled=False)
 
-    if st.button("⚙️ Gerar Solução Técnica com IA", key="btn_gerar_solucao"):
-        with st.spinner("Gerando solução técnica com IA..."):
+    if st.button("⚙️ Generate Technical Solution with AI", key="btn_gerar_solucao"):
+        with st.spinner("Generating technical solutions with AI..."):
             prompt_solucao = f"""
-            Você é um arquiteto de soluções. Com base nos objetivos abaixo, descreva uma proposta técnica de solução baseada em Data Science.
-            Inclua tecnologias, abordagem, possíveis fontes de dados e etapas de desenvolvimento.
-            Sugira também quais ferramentas, softwares ou frameworks da IBM poderiam ser utilizados.
-            Se houver tecnologias que não são da IBM porém a IBM também usa ou são compatíveis com o ecossitema da IBM sigura também.
-            Não sugira a linguage R, somente Python, SQL, JavaScript, Java, Scala, Rust, C++ e C#.
+            You are a solutions architect. Based on the objectives below, describe a **technical solution** for each objective, using Data Science.
 
-            Objetivos:
+            Objectives:
             {objetivos_base}
 
-            Responda com clareza, de forma estruturada. Em portugues do Brasil, brasileiro
+            Rules:
+            - For EACH objective, provide:
+                1. Objective (short description)
+                2. Technical Solution (approach or method to achieve the objective)
+                3. Recommended Tools/Frameworks (including IBM tools when applicable, or compatible open-source tools)
+                4. Main Development Steps (4 steps only, no more than 4)
+            - Provide solutions only for the objectives listed; do NOT invent extra objectives.
+            - Focus on IBM tools, but include open-source options commonly used by IBM or compatible with the IBM ecosystem.
+            - Do NOT include the R language; only consider Python, SQL, JavaScript, Java, Scala, Rust, C++, and C#.
+            - Use clear bullet points and structured lists under each objective.
+            - Provide the answer in formal US English.
             """
             solucao_gerada = gerar_resposta_watsonx(
                 prompt_solucao,
@@ -88,11 +94,11 @@ def render():
                 max_tokens=1024,
             )
             st.session_state.solucao_tecnica = solucao_gerada
-            st.success("Solução técnica gerada com sucesso!")
+            st.success("Technical solution successfully generated!")
 
-    st.markdown("**Solução Técnica Gerada:**")
+    st.markdown("**Technical solution generated!:**")
     solucao = st.text_area(
-        "Solução Técnica:",
+        "Technical Solution!:",
         value=st.session_state.get("solucao_tecnica", ""),
-        height=250,
+        height=300,
     )

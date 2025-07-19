@@ -3,19 +3,19 @@ from streamlit_option_menu import option_menu
 import streamlit as st
 
 ETAPAS = {
-    "diagnostico": "Diagnóstico",
-    "objetivos": "Objetivos",
-    "solucao": "Solução Técnica",
-    "cronograma": "Cronograma",
-    "restricoes": "Premissas e Limitações",
-    "encerramento": "Encerramento",
+    "diagnostico": "Diagnostics",
+    "objetivos": "Objectives",
+    "solucao": "Tecnical Solution",
+    "cronograma": "Timeline",
+    "restricoes": "Premises and Limitations",
+    "encerramento": "Resume",
 }
 
 
 def render_sidebar():
     labels = list(ETAPAS.values())
     chaves = list(ETAPAS.keys())
-    etapa_atual = st.session_state.get("etapa", chaves[0])
+    etapa_atual = st.session_state.get("Etapa", chaves[0])
     index_atual = chaves.index(etapa_atual)
 
     # Estilo customizado
@@ -36,7 +36,7 @@ def render_sidebar():
         st.markdown('<div class="sidebar-menu-wrapper">', unsafe_allow_html=True)
 
         escolha_label = option_menu(
-            menu_title="SimulAI",
+            menu_title="SimulAItor",
             options=labels,
             icons=[
                 "search",
@@ -75,7 +75,7 @@ def render_sidebar():
     # Atualiza etapa
     for chave, label in ETAPAS.items():
         if label == escolha_label:
-            if chave != st.session_state.get("etapa"):
+            if chave != st.session_state.get("Etapa"):
                 st.session_state.etapa = chave
                 st.rerun()
             break
