@@ -70,9 +70,107 @@ def render():
     st.markdown(
         """
     <div class="header">
-        <h1 style="font-size: 1.5rem; margin: 0 0 0.25rem;">🔍 Diagnostics</h1>
+        <h1 style="font-size: 1.5rem; margin: 0 0 0.25rem;">🔍 Diagnosis</h1>
         <p style="color: #525252; margin: 0;">Identify opportunities for Data Science projects</p>
     </div>
     """,
         unsafe_allow_html=True,
     )
+
+    # Card de entrada de dados
+    st.markdown(
+        '<div class="card-title">📌 Fonte de dados</div>', unsafe_allow_html=True
+    )
+
+    tab1, tab2 = st.tabs(["✍️ Handwritten text", "📁 File Upload"])
+
+    with tab1:
+        manual_text = st.text_area(
+            "Type or paste your content for analysis:",
+            value=carregar_benchmark("cemig_en"),
+            height=250,
+            label_visibility="collapsed",
+        )
+        texto_extraido = manual_text
+
+    with tab2:
+        uploaded_file = st.file_uploader(
+            "Select a file (TXT, PDF or DOCX):",
+            type=["txt", "pdf", "docx"],
+            label_visibility="collapsed",
+        )
+        if uploaded_file:
+            with st.expander("🔍 View content", expanded=False):
+                texto_extraido = extract_text_from_file(uploaded_file)
+                if texto_extraido:
+                    st.text_area(
+                        "Conteúdo extraído:",
+                        value=texto_extraido,
+                        height=200,
+                        label_visibility="collapsed",
+                    )
+                else:
+                    st.warning("Unable to extract text from this file")
+
+    # Botão de análise
+    if st.button("🔎 Analyze with IA", type="primary"):
+        if texto_extraido and len(texto_extraido.strip()) > 0:
+            with st.spinner("Analisando conteúdo..."):
+                prompt = (
+                    "You are a specialist in identifying Data Science opportunities for commercial proposals.\n"
+                    "Analyze the content below and provide ONLY a clear, concise list:\n"
+                    "- One project opportunity per bullet (one line)\n"
+                    "- Include area of application and expected impact in parentheses on the same line\n"
+                    "- All opportunities must start with '-'\n"
+                    "- Use consistent area names\n"
+                    "- Keep each bullet under 250 characters\n"
+                    "- Describe impact qualitatively, without numbers or unverifiable estimates\n"
+                    "- Only identify and list opportunities explicitly present or clearly mentioned in the provided content; do not infer or assume\n"
+                    "- DO NOT include introductions, explanations, summaries, or any text before or after the list\n"
+                    "- Output in English USA, formal executive language\n\n"
+                    f"Content:\n{texto_extraido.strip()}"
+                )
+                resultado = gerar_resposta_watsonx(
+                    prompt,
+                    temperature=0.5,
+                    max_tokens=1024,
+                )
+                oportunidades = [
+                    l for l in resultado.splitlines() if l.strip().startswith("-")
+                ]
+                st.session_state.resultado_diagnostico = resultado
+                st.session_state.qtd_oportunidades = len(oportunidades)
+                st.success(
+                    f"Analysis complete! {len(oportunidades)} opportunities found"
+                )
+        else:
+            st.error("Please enter some text or upload a file")
+
+    # Resultados
+    if st.session_state.get("resultado_diagnostico"):
+        st.markdown("---")
+        st.markdown(
+            """
+        <div class="card result-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="card-title">📋 Resultados</h2>
+                <span style="background: #e0e7ff; color: #0f62fe; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem;">
+                    {0} opportunities
+                </span>
+            </div>
+        """.format(st.session_state.qtd_oportunidades),
+            unsafe_allow_html=True,
+        )
+
+        edited_result = st.text_area(
+            "Opportunities identified:",
+            value=st.session_state.resultado_diagnostico,
+            height=300,
+            label_visibility="collapsed",
+        )
+
+        if edited_result != st.session_state.resultado_diagnostico:
+            st.session_state.resultado_diagnostico = edited_result
+            st.info("Changes saved automatically")
+
+        st.markdown("</div>", unsafe_allow_html=True)

@@ -65,23 +65,42 @@ def render():
     with col1:
         st.markdown(
             f"""
-        <div class="info-card">
-            <div class="info-label">Opportunities identified</div>
-            <div class="info-value">{st.session_state.get('qtd_oportunidades', 0)}</div>
-        </div>
-        """,
+            <div class="info-card">
+                <div class="info-label">Opportunities identified</div>
+                <div class="info-value">
+                    <span style="background: #e0e7ff; color: #0f62fe; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem;">
+                        {st.session_state.get('qtd_oportunidades', 0)}
+                    </span>
+                </div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
 
     with col2:
-        status = "Defined" if st.session_state.get("objetivos") else "Pending"
+        status = (
+            "Defined"
+            if st.session_state.get("objetivos")
+            and st.session_state.objetivos.strip() != "No goals defined yet."
+            else "Pending"
+        )
+
+        color = "#198754" if status == "Defined" else "#ffc107"  # green or yellow
+        bg_color = (
+            "#d1e7dd" if status == "Defined" else "#fff3cd"
+        )  # light green or light yellow
+
         st.markdown(
             f"""
-        <div class="info-card">
-            <div class="info-label">Status of objectives</div>
-            <div class="info-value">{status}</div>
-        </div>
-        """,
+            <div class="info-card">
+                <div class="info-label">Status of objectives</div>
+                <div class="info-value">
+                    <span style="background: {bg_color}; color: {color}; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem;">
+                        {status}
+                    </span>
+                </div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
 
@@ -136,7 +155,7 @@ def render():
             Rules:
             - Provide only objectives that are explicitly supported by the diagnostic content; do not invent or infer details
             - If no quantitative goal (percentages, timeframes) is provided in the diagnostic, describe the objective qualitatively, without adding fictitious numbers
-            - One objective per line, following the format: "- Objective: SMART Justification"
+            - One objective per line, following the format: "- Objective: S.M.A.R.T. Justification"
             - Output strictly in English (USA), formal executive tone
             - Do NOT include any HTML, Markdown, explanations, summaries, or extra text before or after the list
             """
@@ -151,7 +170,10 @@ def render():
 
     # Footer
     st.markdown("---")
-    if st.session_state.get("objetivos"):
+    if (
+        st.session_state.get("objetivos")
+        and st.session_state.objetivos.strip() != "No goals defined yet."
+    ):
         st.success("✅ Objectives defined - You can proceed to the next step")
     else:
         st.warning("⚠️ Please define the objectives before continuing")

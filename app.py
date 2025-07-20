@@ -9,10 +9,10 @@ from etapas import (
 )
 from utils.navigation import render_sidebar, ETAPAS
 
-st.set_page_config(page_title="SimulAI - Simulador de Propostas", layout="wide")
+st.set_page_config(page_title="SimulAItor - Simulador de Propostas", layout="wide")
 
 # Cabeçalho do projeto
-st.markdown("<h1 style='color:#0F62FE;'>SimulAI </h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='color:#0F62FE;'>SimulAItor </h1>", unsafe_allow_html=True)
 
 # Renderiza sidebar estilizada
 render_sidebar()
@@ -22,7 +22,7 @@ etapas_keys = list(ETAPAS.keys())
 etapa_atual = st.session_state.get("etapa", "diagnostico")
 indice = etapas_keys.index(etapa_atual)
 st.progress(
-    (indice + 1) / len(etapas_keys), text=f"Etapa {indice + 1} de {len(etapas_keys)}"
+    (indice + 1) / len(etapas_keys), text=f"Stage {indice + 1} de {len(etapas_keys)}"
 )
 
 # Executa etapa correspondente
