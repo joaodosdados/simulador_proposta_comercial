@@ -2,7 +2,7 @@
 # Arquivo: restricoes.py
 import streamlit as st
 from utils.navigation import render_sidebar
-from utils.llm import gerar_resposta_ollama
+from utils.llm import gerar_resposta_watsonx
 
 
 def render():
@@ -61,7 +61,7 @@ def render():
     """,
         unsafe_allow_html=True,
     )
-    st.subheader("⚠️ Etapa 6: Premises and Limitations")
+    st.subheader("⚠️ Stage 6: Premises and Limitations")
 
     objetivos = st.session_state.get("objetivos", "Undefined objectives.")
     solucao = st.session_state.get("solucao_tecnica", "Technical solution not defined.")
@@ -93,12 +93,22 @@ def render():
             Return the text in formal US English.
             """
 
-            resultado = gerar_resposta_ollama(prompt)
-            st.session_state.premissas_limitacoes = resultado
-            st.success("Text generated successfully!")
+            resultado = gerar_resposta_watsonx(prompt)
+            if resultado:
+                st.session_state.premissas_limitacoes = resultado
+                st.success("✅ Text generated successfully!")
+                st.rerun()
+            else:
+                st.error("❌ Failed to generate text.")
 
     texto = st.session_state.get("premissas_limitacoes", "")
     st.markdown("**Premises and Limitations:**")
-    st.text_area(
-        "Results:", value=texto, height=300, key="textarea_restricoes", disabled=False
+    premissas_texto = st.text_area(
+        "Premises and Limitations:",
+        value=st.session_state.get("premissas_limitacoes", ""),
+        height=300,
+        key="textarea_premissas",
     )
+
+    if premissas_texto != st.session_state.get("premissas_limitacoes", ""):
+        st.session_state.premissas_limitacoes = premissas_texto

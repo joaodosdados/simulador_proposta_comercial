@@ -15,7 +15,7 @@ ETAPAS = {
 def render_sidebar():
     labels = list(ETAPAS.values())
     chaves = list(ETAPAS.keys())
-    etapa_atual = st.session_state.get("Etapa", chaves[0])
+    etapa_atual = st.session_state.get("etapa", chaves[0])
     index_atual = chaves.index(etapa_atual)
 
     # Estilo customizado
@@ -75,7 +75,7 @@ def render_sidebar():
     # Atualiza etapa
     for chave, label in ETAPAS.items():
         if label == escolha_label:
-            if chave != st.session_state.get("Etapa"):
+            if chave != st.session_state.get("etapa"):
                 st.session_state.etapa = chave
                 st.rerun()
             break

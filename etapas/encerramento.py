@@ -16,6 +16,14 @@ class PDF(FPDF, HTMLMixin):
     pass
 
 
+def limpar_texto(texto):
+    import re
+
+    texto = re.sub(r"[’‘]", "'", texto)  # aspas simples curvas → simples normal
+    texto = re.sub(r"[“”]", '"', texto)  # aspas duplas curvas → duplas normal
+    return texto
+
+
 def gerar_pdf():
     from textwrap import wrap
     import re
@@ -72,7 +80,7 @@ def gerar_pdf():
     pdf.ln(5)
 
     add_titulo("6. Premissas e Limitações")
-    add_texto_markdown(st.session_state.get("premissas_limitacoes", ""))
+    add_texto_markdown(limpar_texto(st.session_state.get("premissas_limitacoes", "")))
 
     nome_arquivo = f"proposta_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     caminho = os.path.join(SALVAMENTO_DIR, nome_arquivo)
@@ -133,12 +141,15 @@ def render():
     st.session_state.proposta_tipo = proposta_tipo
 
     st.markdown("### 6. Premises and Limitations")
-    st.text_area(
+    premissas_texto = st.text_area(
         "List relevant assumptions and limitations:",
         value=st.session_state.get("premissas_limitacoes", ""),
         height=150,
-        key="premissas_limitacoes",
+        key="textarea_premissas",
     )
+
+    if premissas_texto != st.session_state.get("premissas_limitacoes", ""):
+        st.session_state.premissas_limitacoes = premissas_texto
 
     st.markdown("---")
     st.markdown("### 💾 Save or Load Simulation")
