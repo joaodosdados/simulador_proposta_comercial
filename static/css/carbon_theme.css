@@ -1,0 +1,35 @@
+/* Baseado no Carbon Design System */
+:root {
+    --cds-interactive: #0f62fe;
+    --cds-interactive-hover: #0353e9;
+    --cds-text-primary: #161616;
+    --cds-text-secondary: #525252;
+    --cds-ui-background: #f4f4f4;
+    --cds-ui-01: #ffffff;
+    --cds-ui-02: #f4f4f4;
+    --cds-ui-03: #e0e0e0;
+    --cds-support-error: #da1e28;
+}
+
+/* Tipografia */
+html, body, [class*="css"] {
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+
+/* Componentes base */
+.bx--card {
+    background: var(--cds-ui-01);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--cds-ui-03);
+}
+
+.bx--card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cds-text-primary);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
