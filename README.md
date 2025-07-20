@@ -1,3 +1,4 @@
+
 # 🧠 Simulador de Propostas Comerciais com Cronograma Inteligente
 
 Este projeto é um simulador interativo desenvolvido em [Streamlit](https://streamlit.io/) para auxiliar na **criação de propostas comerciais técnicas** de projetos de Data Science. O destaque do sistema é a etapa de **cronograma inteligente**, que permite calcular e visualizar a alocação de profissionais, custos e margens de forma flexível e visual.
@@ -11,7 +12,8 @@ Este projeto é um simulador interativo desenvolvido em [Streamlit](https://stre
 - ✅ Cronograma de alocação por semana com tabela editável
 - ✅ Cálculo automático de custos e margens (Fixed-price ou Time & Materials)
 - ✅ Visualizações interativas (Gantt e Heatmap de horas)
-- ✅ Exportação da proposta em **PDF** ou salvamento em **JSON**
+- ✅ Exportação da proposta em **PDF** com layout minimalista inspirado no Carbon Design System da IBM (via WeasyPrint)
+- ✅ Salvamento e carregamento em **JSON**
 - 🔜 IA generativa para sugestão de cronograma (em desenvolvimento)
 
 ---
@@ -20,37 +22,50 @@ Este projeto é um simulador interativo desenvolvido em [Streamlit](https://stre
 
 - [Python 3.12+](https://www.python.org)
 - [Streamlit](https://streamlit.io)
-- [FPDF](https://pyfpdf.github.io)
+- [WeasyPrint](https://weasyprint.org/) (geração avançada de PDF com HTML+CSS)
 - [Plotly](https://plotly.com/python/)
-- [Seaborn + Matplotlib](https://seaborn.pydata.org/)
 - [st-aggrid](https://github.com/PablocFonseca/streamlit-aggrid)
 
 ---
 
 ## 🚀 Como Rodar Localmente
 
-### 1. Clone o repositório
+### 1️⃣ Clone o repositório
 
 ```bash
 git clone https://github.com/joaolso/simulador_proposta_comercial.git
 cd simulador_proposta_comercial
 ```
 
-### 2. Crie e ative o ambiente virtual
+### 2️⃣ Crie e ative o ambiente virtual
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Linux/Mac
-.venv\Scripts\activate   # Windows
+.venv\Scripts\activate     # Windows
 ```
 
-### 3. Instale as dependências com uv
+### 3️⃣ Instale as dependências com uv
 
 ```bash
 uv sync
 ```
 
-### 4. Execute a aplicação
+---
+
+### ⚠️ Dependências do Sistema para WeasyPrint
+
+Além das bibliotecas Python, o **WeasyPrint** depende de bibliotecas nativas.
+
+| Sistema Operacional | Dependências |
+|----------------------|--------------|
+| macOS               | `brew install cairo pango gdk-pixbuf libffi` |
+| Ubuntu/Debian       | `sudo apt-get install libcairo2 libpango-1.0-0 libgdk-pixbuf2.0-0 libffi-dev` |
+| Windows             | Baixar e instalar [GTK+ runtime](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer) |
+
+Se preferir evitar configuração manual, recomendamos usar Docker (imagem em breve).
+
+### 4️⃣ Execute a aplicação
 
 ```bash
 streamlit run app.py
@@ -62,7 +77,7 @@ streamlit run app.py
 
 **João Lucas dos Santos Oliveira**  
 Data Scientist | AI Engineer  
-[GitHub](https://github.com/joaolso) · [LinkedIn](https://linkedin.com/in/joaodosdados)
+[GitHub](https://github.com/joaodosdados) · [LinkedIn](https://linkedin.com/in/joaodosdados)
 
 ---
 

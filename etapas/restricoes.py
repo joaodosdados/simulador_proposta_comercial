@@ -61,7 +61,7 @@ def render():
     """,
         unsafe_allow_html=True,
     )
-    st.subheader("⚠️ Stage 6: Premises and Limitations")
+    st.subheader("⚖️ Stage 6: Premises and Limitations")
 
     objetivos = st.session_state.get("objetivos", "Undefined objectives.")
     solucao = st.session_state.get("solucao_tecnica", "Technical solution not defined.")
@@ -103,12 +103,13 @@ def render():
 
     texto = st.session_state.get("premissas_limitacoes", "")
     st.markdown("**Premises and Limitations:**")
-    premissas_texto = st.text_area(
+    edited_premissas = st.text_area(
         "Premises and Limitations:",
         value=st.session_state.get("premissas_limitacoes", ""),
         height=300,
         key="textarea_premissas",
     )
 
-    if premissas_texto != st.session_state.get("premissas_limitacoes", ""):
-        st.session_state.premissas_limitacoes = premissas_texto
+    if edited_premissas != st.session_state.get("premissas_limitacoes", ""):
+        st.session_state.premissas_limitacoes = edited_premissas
+        st.info("Changes saved automatically")

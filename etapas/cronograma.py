@@ -133,7 +133,7 @@ def render():
         "cronograma_df": pd.DataFrame(),
         "last_meses": 6,
         "last_profissionais": [p["cargo"] for p in PROFISSIONAIS_DISPONIVEIS],
-        "modelo_comercial": "Fixed-price",
+        "modelo_comercial": "Time & Materials",
         "margem_fixed_price": 20,
         "total_geral": 0,
         "total_com_adicional": 0,
@@ -151,8 +151,10 @@ def render():
         with col1:
             modelo_comercial = st.selectbox(
                 "Commercial Model:",
-                options=["Fixed-price", "Time & Materials"],
-                index=0 if st.session_state.modelo_comercial == "Fixed-price" else 1,
+                options=["Time & Materials", "Fixed-price"],
+                index=0
+                if st.session_state.modelo_comercial == "Time & Materials"
+                else 1,
                 key="select_modelo_comercial",
             )
 
