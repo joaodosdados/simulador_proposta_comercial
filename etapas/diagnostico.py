@@ -87,11 +87,17 @@ def render():
     with tab1:
         manual_text = st.text_area(
             "Type or paste your content for analysis:",
-            value=carregar_benchmark("cemig_en"),
+            value=st.session_state.get(
+                "texto_extraido", carregar_benchmark("cemig_en")
+            ),
             height=250,
             label_visibility="collapsed",
         )
-        texto_extraido = manual_text
+
+        if manual_text != st.session_state.get("texto_extraido", ""):
+            st.session_state.texto_extraido = manual_text
+
+        texto_extraido = st.session_state.texto_extraido
 
     with tab2:
         uploaded_file = st.file_uploader(

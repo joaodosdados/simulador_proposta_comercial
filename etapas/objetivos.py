@@ -108,33 +108,26 @@ def render():
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown(
-            '<div class="comparison-title">📋 Original Diagnosis</div>',
-            unsafe_allow_html=True,
-        )
         st.text_area(
-            label="Original Diagnosis",
+            "📋 Original Diagnosis",
             value=st.session_state.get(
                 "resultado_diagnostico", "No diagnosis available."
             ),
             height=450,
             disabled=False,
-            label_visibility="collapsed",
         )
 
     with col2:
-        st.markdown(
-            '<div class="comparison-title">🎯 Proposed Objectives</div>',
-            unsafe_allow_html=True,
-        )
-        objetivos = st.text_area(
-            "Objetivos:",
+        edited_objetivos = st.text_area(
+            "🎯 Proposed Objectives:",
             value=st.session_state.get("objetivos", "No goals defined yet."),
             height=450,
-            label_visibility="collapsed",
+            key="textarea_objetivos",
         )
-        if objetivos != st.session_state.get("objectives", ""):
-            st.session_state.objetivos = objetivos
+
+        if edited_objetivos != st.session_state.get("objetivos", ""):
+            st.session_state.objetivos = edited_objetivos
+            st.info("Changes saved automatically")
 
     # Seção de geração de objetivos
     st.markdown(

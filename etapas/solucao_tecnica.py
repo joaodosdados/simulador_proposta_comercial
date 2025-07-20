@@ -65,7 +65,6 @@ def render():
     st.subheader("🛠️ Etapa 3: Technical Solution")
 
     objetivos_base = st.session_state.get("objetivos", "Objectives not yet defined.")
-    st.markdown("**Defined objectives:**")
     st.text_area("Objectivies:", value=objetivos_base, height=300, disabled=False)
 
     if st.button("⚙️ Generate Technical Solution with AI", key="btn_gerar_solucao"):
@@ -96,9 +95,13 @@ def render():
             st.session_state.solucao_tecnica = solucao_gerada
             st.success("Technical solution successfully generated!")
 
-    st.markdown("**Technical solution generated!:**")
-    solucao = st.text_area(
-        "Technical Solution!:",
+    edited_solucao = st.text_area(
+        "Technical Solution:",
         value=st.session_state.get("solucao_tecnica", ""),
         height=300,
+        key="textarea_solucao_tecnica",
     )
+
+    if edited_solucao != st.session_state.get("solucao_tecnica", ""):
+        st.session_state.solucao_tecnica = edited_solucao
+        st.info("Changes saved automatically")
