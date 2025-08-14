@@ -63,6 +63,7 @@ Além das bibliotecas Python, o **WeasyPrint** depende de bibliotecas nativas.
 | Windows             | Baixar e instalar [GTK+ runtime](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer) |
 
 ### Dependências nativas do WeasyPrint: Cairo, Pango, GDK-PixBuf, Fontconfig e fontes
+```bash
 sudo apt install -y \
   libcairo2 \
   libpango-1.0-0 \
@@ -73,6 +74,9 @@ sudo apt install -y \
   fonts-dejavu-core \
   fonts-liberation \
   fonts-noto-core
+```
+
+---
 
 Se preferir evitar configuração manual, recomendamos usar Docker (imagem em breve).
 
