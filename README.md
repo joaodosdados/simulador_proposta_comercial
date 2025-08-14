@@ -50,7 +50,6 @@ source .venv/bin/activate  # Linux/Mac
 ```bash
 uv sync
 ```
-
 ---
 
 ### ⚠️ Dependências do Sistema para WeasyPrint
@@ -62,6 +61,18 @@ Além das bibliotecas Python, o **WeasyPrint** depende de bibliotecas nativas.
 | macOS               | `brew install cairo pango gdk-pixbuf libffi` |
 | Ubuntu/Debian       | `sudo apt-get install libcairo2 libpango-1.0-0 libgdk-pixbuf2.0-0 libffi-dev` |
 | Windows             | Baixar e instalar [GTK+ runtime](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer) |
+
+### Dependências nativas do WeasyPrint: Cairo, Pango, GDK-PixBuf, Fontconfig e fontes
+sudo apt install -y \
+  libcairo2 \
+  libpango-1.0-0 \
+  libpangocairo-1.0-0 \
+  libgdk-pixbuf-2.0-0 \
+  libglib2.0-0 \
+  fontconfig \
+  fonts-dejavu-core \
+  fonts-liberation \
+  fonts-noto-core
 
 Se preferir evitar configuração manual, recomendamos usar Docker (imagem em breve).
 
