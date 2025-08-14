@@ -13,7 +13,10 @@ REGION = "us-south"
 
 
 def gerar_resposta_watsonx(
-    prompt, modelo="mistralai/mistral-medium-2505", temperature=0.4, max_tokens=512
+    prompt,
+    modelo="mistralai/mistral-small-3-1-24b-instruct-2503",
+    temperature=0.4,
+    max_tokens=512,
 ):
     try:
         generate_params = {
