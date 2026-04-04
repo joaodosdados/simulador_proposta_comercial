@@ -1,47 +1,47 @@
 {
     "_comment": "Copie este arquivo para config.json e preencha com os valores reais.",
-    "wacc_anual": 0.10,
-    "contingencia_default": 0.02,
-    "iss": 0.029,
-    "pis_cofins": 0.0365,
-    "npv_gp_minimo": 0.05,
-    "revenue_apportionment_pct": 0.195,
-    "horas_mes_default": 176,
-    "payment_terms_default": 30,
+    "wacc_anual": 0.99,
+    "contingencia_default": 0.99,
+    "iss": 0.99,
+    "pis_cofins": 0.99,
+    "npv_gp_minimo": 0.99,
+    "revenue_apportionment_pct": 0.99,
+    "horas_mes_default": 999,
+    "payment_terms_default": 999,
     "contingency_table": {
         "Very Low": {
-            "I": 0.02,
-            "II": 0.03,
-            "III": 0.05
+            "I": 0.99,
+            "II": 0.99,
+            "III": 0.99
         },
         "Low": {
-            "I": 0.03,
-            "II": 0.05,
-            "III": 0.08
+            "I": 0.99,
+            "II": 0.99,
+            "III": 0.99
         },
         "Moderate": {
-            "I": 0.05,
-            "II": 0.08,
-            "III": 0.12
+            "I": 0.99,
+            "II": 0.99,
+            "III": 0.99
         },
         "High": {
-            "I": 0.08,
-            "II": 0.14,
-            "III": 0.18
+            "I": 0.99,
+            "II": 0.99,
+            "III": 0.99
         }
     },
     "taxas_banda": {
-        "Band 3": 100.00,
-        "Band 4": 100.00,
-        "Band 5": 120.00,
-        "Band 6G": 140.00,
-        "Band 6A": 160.00,
-        "Band 6B": 180.00,
-        "Band 7A": 220.00,
-        "Band 7B": 280.00,
-        "Band 8": 380.00,
-        "Band 9": 550.00,
-        "Band 10": 1100.00,
-        "Band D": 1300.00
+        "Band 3": 999.99,
+        "Band 4": 999.99,
+        "Band 5": 999.99,
+        "Band 6G": 999.99,
+        "Band 6A": 999.99,
+        "Band 6B": 999.99,
+        "Band 7A": 999.99,
+        "Band 7B": 999.99,
+        "Band 8": 999.99,
+        "Band 9": 999.99,
+        "Band 10": 999.99,
+        "Band D": 999.99
     }
 }
