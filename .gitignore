@@ -1,6 +1,17 @@
 # Secrets
 .env
 .env.*
+!.env.example
+
+# Sensitive config (rates, financial constants)
+config.json
+
+# IBM internal data
+calculadora/
+benchmarks/
+
+# Simulation data (may contain client info)
+simulacoes_salvas/
 
 # Python
 __pycache__/
@@ -15,3 +26,9 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+
+# Generated files
+*.pdf

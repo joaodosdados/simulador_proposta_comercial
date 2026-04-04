@@ -1,115 +1,168 @@
-# Pasta: etapas/
-# Arquivo: restricoes.py
+"""
+Etapa 3 – Premissas e Limitações
+Usa oportunidades/objetivos/soluções da Proposta + dados do Cost Estimator
+para gerar premissas, limitações e riscos com IA.
+"""
+
 import streamlit as st
-from utils.navigation import render_sidebar
 from utils.llm import gerar_resposta_watsonx
 
 
-def render():
-    st.markdown(
-        """
-    <style>
-        .header-section {
-            border-bottom: 1px solid #e0e0e0;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #161616;
-            margin: 1rem 0 0.5rem;
-        }
-        .info-card {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        .comparison-container {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .stButton>button {
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 8px;
-            background-color: #0f62fe;
-            color: white;
-            border: none;
-            font-weight: 500;
-        }
-        .stButton>button:hover {
-            background-color: #0353e9;
-        }
-        .comparison-panel {
-            flex: 1;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 1rem;
-            height: 300px;
-            overflow-y: auto;
-        }
-        .comparison-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #0f62fe;
-        }
-    </style>
-    """,
-        unsafe_allow_html=True,
+# ── Helpers ───────────────────────────────────────────────────────────────────
+def _build_context() -> str:
+    """Monta o contexto a partir de proposal_items + Cost Estimator."""
+    parts: list[str] = []
+
+    # --- Itens da proposta ---
+    items = st.session_state.get("proposal_items", [])
+    if items:
+        for i, it in enumerate(items, 1):
+            parts.append(f"### Oportunidade {i}")
+            parts.append(f"Descrição: {it.get('opportunity', 'N/D')}")
+            parts.append(f"Objetivo SMART:\n{it.get('objective', 'N/D')}")
+            parts.append(f"Solução Técnica:\n{it.get('solution', 'N/D')}")
+            parts.append("")
+    else:
+        # Fallback: campos legados
+        obj = st.session_state.get("objetivos", "")
+        sol = st.session_state.get("solucao_tecnica", "")
+        if obj:
+            parts.append(f"Objetivos:\n{obj}")
+        if sol:
+            parts.append(f"Solução Técnica:\n{sol}")
+
+    # --- Prazo do projeto ---
+    n_meses = st.session_state.get("n_meses", 12)
+    tipo = st.session_state.get("tipo_contrato", "")
+
+    fin_lines: list[str] = []
+    if n_meses:
+        fin_lines.append(f"- Duracao do projeto: {n_meses} meses")
+    if tipo:
+        fin_lines.append(f"- Modelo comercial: {tipo}")
+
+    if fin_lines:
+        parts.append("### Dados do Projeto")
+        parts.extend(fin_lines)
+
+    return "\n".join(parts)
+
+
+def _build_prompt(contexto: str) -> str:
+    return (
+        "Voce e um consultor senior IBM especializado em propostas tecnicas de "
+        "Data Science, IA e engenharia de software.\n"
+        "Com base EXCLUSIVAMENTE no contexto abaixo, gere um documento de Premissas e Limitacoes "
+        "para a proposta comercial.\n\n"
+        "TODA A SAIDA DEVE SER EM PORTUGUES FORMAL DO BRASIL.\n\n"
+        "=== REGRAS CRITICAS ===\n"
+        "- NAO mencione profissionais, cargos, bandas ou tamanho de equipe\n"
+        "- NAO invente custos, valores monetarios ou metricas nao fornecidos\n"
+        "- Foque em premissas tecnicas, de escopo, riscos e compliance\n"
+        "==================\n\n"
+        "O documento deve conter as seguintes secoes:\n\n"
+        "**1. Premissas Operacionais**\n"
+        "- Acesso a dados, sistemas, ambientes e infraestrutura\n"
+        "- Disponibilidade de stakeholders e ponto focal do cliente\n"
+        "- Qualidade e formato dos dados disponiveis\n"
+        "- Permissoes e credenciais necessarias\n\n"
+        "**2. Premissas de Escopo**\n"
+        "- O que esta incluido e o que NAO esta incluido no escopo\n"
+        "- Integracoes previstas vs. integracoes fora do escopo\n"
+        "- Criterios de aceitacao das entregas\n"
+        "- Change requests: processo e impacto em prazo/custo\n\n"
+        "**3. Limitacoes Tecnicas**\n"
+        "- Restricoes de sistemas legados, versoes de software, dependencias\n"
+        "- Limitacoes de performance, volumetria e escalabilidade\n"
+        "- Dependencias externas (APIs, fornecedores, licencas)\n\n"
+        "**4. Riscos e Salvaguardas**\n"
+        "- Riscos identificados com probabilidade e impacto\n"
+        "- Planos de mitigacao para cada risco\n"
+        "- Clausulas contratuais recomendadas (SLA, penalidades, limites de responsabilidade)\n\n"
+        "**5. Compliance e Protecao de Dados**\n"
+        "- Requisitos LGPD aplicaveis ao projeto\n"
+        "- Tratamento de dados pessoais e sensiveis\n"
+        "- Recomendacoes de anonimizacao/pseudonimizacao\n"
+        "- Necessidade de DPO ou DPIA\n\n"
+        "**6. Premissas de Prazo**\n"
+        "- Cronograma baseado na duracao prevista\n"
+        "- Riscos de atraso e dependencias entre atividades\n"
+        "- Condicoes para cumprimento dos marcos\n\n"
+        "Regras adicionais:\n"
+        "- Seja especifico ao projeto descrito\n"
+        "- Considere as tecnologias mencionadas na solucao tecnica\n"
+        "- Use bullet points (- ) para cada item\n"
+        "- Retorne texto formatado em Markdown\n"
+        "- NAO mencione nomes de cargos ou profissionais (ex: Data Scientist, Engenheiro, PM)\n"
+        "- NAO mencione valores monetarios (ex: R$, custos, orcamento, economia)\n"
+        "- Ignore qualquer mencao a equipe, cargos ou valores que aparecar no contexto\n"
+        "- Foque SOMENTE em premissas tecnicas, de escopo, riscos, compliance e prazo\n\n"
+        f"Contexto do Projeto:\n{contexto}"
     )
-    st.subheader("⚖️ Stage 6: Premises and Limitations")
 
-    objetivos = st.session_state.get("objetivos", "Undefined objectives.")
-    solucao = st.session_state.get("solucao_tecnica", "Technical solution not defined.")
 
-    st.text_area("Project Objective:", value=objetivos, height=150, disabled=False)
-    st.text_area("Technical Solution:", value=solucao, height=150, disabled=False)
+# ── Renderiza resumo do contexto usado ────────────────────────────────────────
+def _render_context_summary():
+    items = st.session_state.get("proposal_items", [])
+    n_meses = st.session_state.get("n_meses", 12)
 
-    if st.button("⚙️ Generating Assumptions and Constraints with AI"):
-        with st.spinner(
-            "Generating recommendations from assumptions and limitations..."
-        ):
-            prompt = f"""
-            You are a consultant specializing in technical Data Science proposals. Your role is to identify technical and operational assumptions, as well as limitations and risks for a project.
+    cols = st.columns(2)
+    with cols[0]:
+        n_opp = len(items) if items else 0
+        st.metric("Oportunidades", n_opp)
+    with cols[1]:
+        st.metric("Duracao", f"{n_meses} meses")
 
-            Use the objectives and technical solution below as your basis:
+    if not items and not st.session_state.get("objetivos"):
+        st.warning(
+            "Nenhuma oportunidade definida na etapa de Proposta. "
+            "Volte a etapa anterior para gerar oportunidades com IA."
+        )
 
-            Objectives:
-            {objetivos}
 
-            Technical Solution:
-            {solucao}
+# ── Render principal ──────────────────────────────────────────────────────────
+def render():
+    st.subheader("Premissas e Limitações")
+    st.caption(
+        "Gere premissas, limitações e riscos baseados na proposta e no Cost Estimator"
+    )
 
-            List:
-            - Operational assumptions (data, access, permissions, systems, etc.)
-            - Scope limitations (integrations, legacy systems, exclusions, etc.)
-            - Risk alerts and contractual safeguards
-            - Compliance and data protection aspects (e.g., GDPR, LGPD), highlighting risks and recommendations
+    _render_context_summary()
 
-            Return the text in formal US English.
-            """
+    st.divider()
 
-            resultado = gerar_resposta_watsonx(prompt)
+    # Botão de geração
+    if st.button("Gerar Premissas e Limitações com IA", key="btn_gerar_premissas"):
+        contexto = _build_context()
+        if not contexto.strip():
+            st.error(
+                "Sem dados disponíveis. Preencha a Proposta e/ou o Cost Estimator primeiro."
+            )
+            return
+
+        with st.spinner("Gerando premissas e limitações..."):
+            prompt = _build_prompt(contexto)
+            resultado = gerar_resposta_watsonx(prompt, temperature=0.1, max_tokens=3000)
             if resultado:
                 st.session_state.premissas_limitacoes = resultado
-                st.success("✅ Text generated successfully!")
+                st.session_state._premissas_contexto = contexto
+                st.success("Premissas e limitações geradas com sucesso!")
                 st.rerun()
             else:
-                st.error("❌ Failed to generate text.")
+                st.error("Falha ao gerar texto com IA.")
 
-    texto = st.session_state.get("premissas_limitacoes", "")
-    st.markdown("**Premises and Limitations:**")
-    edited_premissas = st.text_area(
-        "Premises and Limitations:",
-        value=st.session_state.get("premissas_limitacoes", ""),
-        height=300,
-        key="textarea_premissas",
-    )
+    # Debug: mostra contexto enviado para a IA
+    ctx_debug = st.session_state.get("_premissas_contexto", "")
+    if ctx_debug:
+        with st.expander("Contexto enviado para a IA", expanded=False):
+            st.code(ctx_debug, language=None)
 
-    if edited_premissas != st.session_state.get("premissas_limitacoes", ""):
-        st.session_state.premissas_limitacoes = edited_premissas
-        st.info("Changes saved automatically")
+    # Resultado
+    texto_atual = st.session_state.get("premissas_limitacoes", "")
+
+    if texto_atual:
+        with st.expander("Copiar texto (clique no icone de copiar)", expanded=False):
+            st.code(texto_atual, language=None)
+
+        with st.expander("Visualizacao formatada", expanded=True):
+            st.markdown(texto_atual)

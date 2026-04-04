@@ -431,7 +431,7 @@ def render():
                         uniformtext_minsize=10,
                     )
 
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
 
             with col2:
                 # Gráfico de horas por profissional
@@ -462,7 +462,7 @@ def render():
                         uniformtext_minsize=8,
                     )
 
-                    st.plotly_chart(fig2, use_container_width=True)
+                    st.plotly_chart(fig2, width="stretch")
 
         with tab3:
             # Gráfico de Gantt
@@ -515,7 +515,7 @@ def render():
                         ),
                     )
 
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
 
                 except Exception as e:
                     st.error(f"Erro ao gerar gráfico Gantt: {str(e)}")

@@ -3,11 +3,9 @@ from streamlit_option_menu import option_menu
 import streamlit as st
 
 ETAPAS = {
-    "diagnostico": "Diagnostics",
-    "objetivos": "Objectives",
-    "solucao": "Tecnical Solution",
-    "cronograma": "Timeline",
-    "restricoes": "Premises and Limitations",
+    "proposta": "Proposal",
+    "financeiro": "Cost Estimator",
+    "restricoes": "Premissas e Limitações",
     "encerramento": "Resume",
 }
 
@@ -18,7 +16,7 @@ def render_sidebar():
     etapa_atual = st.session_state.get("etapa", chaves[0])
     index_atual = chaves.index(etapa_atual)
 
-    # Estilo customizado
+    # Estilo customizado — remove scroll do menu para não cortar itens
     st.markdown(
         """
         <style>
@@ -26,6 +24,28 @@ def render_sidebar():
             font-size: 1.25rem;
             color: #0f62fe;
             margin-bottom: 1rem;
+        }
+        /* Give the option-menu iframe enough room for all 4 items + title */
+        div[data-testid="stSidebar"] iframe {
+            height: 420px !important;
+            min-height: 420px !important;
+        }
+        /* Prevent parent containers from clipping the iframe */
+        div[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"],
+        div[data-testid="stSidebar"] [data-testid="element-container"] {
+            overflow: visible !important;
+        }
+        /* Prevent nav container from clipping menu items */
+        div[data-testid="stSidebar"] nav.nav,
+        div[data-testid="stSidebar"] .nav-justified,
+        div[data-testid="stSidebar"] .nav-pills {
+            max-height: none !important;
+            overflow: visible !important;
+        }
+        /* Ensure long menu labels wrap instead of being truncated */
+        div[data-testid="stSidebar"] .nav-link span {
+            white-space: normal !important;
+            word-wrap: break-word !important;
         }
         </style>
         """,
@@ -36,14 +56,12 @@ def render_sidebar():
         st.markdown('<div class="sidebar-menu-wrapper">', unsafe_allow_html=True)
 
         escolha_label = option_menu(
-            menu_title="SimulAItor",
+            menu_title="CostWise AI",
             options=labels,
             icons=[
-                "search",
-                "bullseye",
-                "tools",
-                "calendar",
-                "exclamation",
+                "pencil-square",
+                "calculator",
+                "exclamation-triangle",
                 "check2-circle",
             ],
             menu_icon="cast",
