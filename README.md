@@ -1,86 +1,82 @@
+# CostWise AI
 
-# 🧠 Simulador de Propostas Comerciais com Cronograma Inteligente
-
-Este projeto é um simulador interativo desenvolvido em [Streamlit](https://streamlit.io/) para auxiliar na **criação de propostas comerciais técnicas** de projetos de Data Science. O destaque do sistema é a etapa de **cronograma inteligente**, que permite calcular e visualizar a alocação de profissionais, custos e margens de forma flexível e visual.
-
----
-
-## ✨ Funcionalidades
-
-- ✅ Estrutura passo a passo para construção da proposta
-- ✅ Definição de objetivos, diagnóstico e solução técnica
-- ✅ Cronograma de alocação por semana com tabela editável
-- ✅ Cálculo automático de custos e margens (Fixed-price ou Time & Materials)
-- ✅ Visualizações interativas (Gantt e Heatmap de horas)
-- ✅ Exportação da proposta em **PDF** com layout minimalista inspirado no Carbon Design System da IBM (via WeasyPrint)
-- ✅ Salvamento e carregamento em **JSON**
-- 🔜 IA generativa para sugestão de cronograma (em desenvolvimento)
+Simulador interativo de propostas comerciais e estimativas de custo para projetos de consultoria. Construído com [Streamlit](https://streamlit.io/) e IBM Watsonx AI.
 
 ---
 
-## 🧩 Tecnologias Utilizadas
+## Funcionalidades
 
-- [Python 3.12+](https://www.python.org)
-- [Streamlit](https://streamlit.io)
-- [WeasyPrint](https://weasyprint.org/) (geração avançada de PDF com HTML+CSS)
-- [Plotly](https://plotly.com/python/)
-- [st-aggrid](https://github.com/PablocFonseca/streamlit-aggrid)
+- **Proposal** — Análise de oportunidades com IA (Watsonx), geração de diagnóstico, objetivos e soluções
+- **Cost Estimator** — Staffing plan por banda, markup, NPV GP%, P&L, billing schedule, contingência, misc items
+- **Premissas e Limitações** — Geração automática com IA baseada no contexto do projeto
+- **Resume** — Visão consolidada com KPI cards, tabelas e exportação (JSON/PDF)
+
+### Motor financeiro
+- Cálculo de NPV GP% com desconto WACC mensal
+- Markup mínimo automático (busca binária)
+- 3 modos de billing schedule (proporcional, igualitário, customizado)
+- Tabela de contingência Risk Profile × Work Type
+- Preliminary P&L completo (Nominal GP, PTI, Rev. Apportionment, Contract GP)
 
 ---
 
-## 🚀 Como Rodar Localmente
+## Stack
 
-### 1️⃣ Clone o repositório
+- Python 3.12+
+- Streamlit + streamlit-option-menu
+- IBM Watsonx AI (Mistral Small)
+- WeasyPrint (PDF)
+- Pandas
+
+---
+
+## Setup
+
+### 1. Clone
 
 ```bash
-git clone https://github.com/joaolso/simulador_proposta_comercial.git
+git clone https://github.com/joaodosdados/simulador_proposta_comercial.git
 cd simulador_proposta_comercial
 ```
 
-### 2️⃣ Crie e ative o ambiente virtual
+### 2. Ambiente virtual
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Linux/Mac
-.venv\Scripts\activate     # Windows
 ```
 
-### 3️⃣ Instale as dependências com uv
+### 3. Dependências
 
 ```bash
-uv sync
+pip install -r requirements.txt
 ```
----
 
-### ⚠️ Dependências do Sistema para WeasyPrint
+### 4. Configuração
 
-Além das bibliotecas Python, o **WeasyPrint** depende de bibliotecas nativas.
+Copie os templates e preencha com seus valores:
 
-| Sistema Operacional | Dependências |
-|----------------------|--------------|
-| macOS               | `brew install cairo pango gdk-pixbuf libffi` |
-| Ubuntu/Debian       | `sudo apt-get install libcairo2 libpango-1.0-0 libgdk-pixbuf2.0-0 libffi-dev` |
-| Windows             | Baixar e instalar [GTK+ runtime](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer) |
-
-### Dependências nativas do WeasyPrint: Cairo, Pango, GDK-PixBuf, Fontconfig e fontes
 ```bash
-sudo apt install -y \
-  libcairo2 \
-  libpango-1.0-0 \
-  libpangocairo-1.0-0 \
-  libgdk-pixbuf-2.0-0 \
-  libglib2.0-0 \
-  fontconfig \
-  fonts-dejavu-core \
-  fonts-liberation \
-  fonts-noto-core
+cp config.example.json config.json   # Taxas, WACC, contingência, etc.
+cp .env.example .env                 # API keys do Watsonx
 ```
 
----
+**`config.json`** — Constantes financeiras (taxas por banda, WACC, contingência, NPV mínimo, etc.)
 
-Se preferir evitar configuração manual, recomendamos usar Docker (imagem em breve).
+**`.env`** — Credenciais:
+```
+IBM_KEY=sua_chave_watsonx
+PROJECT_ID=seu_project_id
+```
 
-### 4️⃣ Execute a aplicação
+### 5. WeasyPrint (opcional, para PDF)
+
+| OS | Comando |
+|----|---------|
+| macOS | `brew install cairo pango gdk-pixbuf libffi` |
+| Ubuntu | `sudo apt-get install libcairo2 libpango-1.0-0 libgdk-pixbuf2.0-0 libffi-dev` |
+
+### 6. Executar
 
 ```bash
 streamlit run app.py
@@ -88,14 +84,36 @@ streamlit run app.py
 
 ---
 
-## 🧑‍💻 Autor
+## Estrutura
 
-**João Lucas dos Santos Oliveira**  
-Data Scientist | AI Engineer  
+```
+├── app.py                    # Entry point
+├── config.json               # Dados sensíveis (gitignored)
+├── config.example.json       # Template de configuração
+├── .env                      # API keys (gitignored)
+├── etapas/
+│   ├── etapa_proposta.py     # Proposal com IA
+│   ├── etapa_financeiro.py   # Cost Estimator
+│   ├── restricoes.py         # Premissas e Limitações
+│   └── encerramento.py       # Resume + PDF
+├── utils/
+│   ├── calculos.py           # Motor financeiro
+│   ├── llm.py                # Integração Watsonx/Ollama
+│   ├── navigation.py         # Sidebar
+│   └── benchmark_loader.py   # Loader de benchmarks
+└── static/css/               # Carbon Design theme
+```
+
+---
+
+## Autor
+
+**João Lucas dos Santos Oliveira**
+Data Scientist | AI Engineer
 [GitHub](https://github.com/joaodosdados) · [LinkedIn](https://linkedin.com/in/joaodosdados)
 
 ---
 
-## 🛡️ Licença
+## Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [`LICENSE`](LICENSE) para mais detalhes.
+MIT — veja [LICENSE](LICENSE).
