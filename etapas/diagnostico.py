@@ -87,9 +87,7 @@ def render():
     with tab1:
         manual_text = st.text_area(
             "Type or paste your content for analysis:",
-            value=st.session_state.get(
-                "texto_extraido", carregar_benchmark("cemig_en")
-            ),
+            value=st.session_state.get("texto_extraido", carregar_benchmark("cemig")),
             height=250,
             label_visibility="collapsed",
         )

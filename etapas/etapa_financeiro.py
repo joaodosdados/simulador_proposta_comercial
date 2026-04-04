@@ -4,6 +4,8 @@ Grupos, profissionais, grid de alocação mensal, NPV GP% ao vivo.
 Interface compacta tipo planilha com layout similar ao IBM Cost Case.
 """
 
+import json
+import re
 import streamlit as st
 import pandas as pd
 
@@ -80,6 +82,133 @@ def _billing_kwargs() -> dict:
     }
 
 
+# ── Agente AI de Staffing ─────────────────────────────────────────────────────
+def _build_staffing_prompt(n_meses: int) -> str | None:
+    """Monta o prompt para o agente gerar squads a partir do contexto da proposta."""
+    items = st.session_state.get("proposal_items", [])
+    if not items:
+        return None
+
+    contrato = st.session_state.get("tipo_contrato", "Projeto")
+    bandas_info = "\n".join(
+        f"  - {b}: R$ {t:,.2f}/hora" for b, t in TAXAS_BANDA.items()
+    )
+    items_text = ""
+    for i, it in enumerate(items, 1):
+        items_text += (
+            f"\n--- Oportunidade {i} ---\n"
+            f"Oportunidade: {it.get('opportunity', '')}\n"
+            f"Objetivo: {it.get('objective', '')}\n"
+            f"Solução técnica: {it.get('solution', '')}\n"
+        )
+
+    return (
+        "Você é um gerente de projetos IBM sênior especializado em staffing de projetos de "
+        "Data Science, IA e Engenharia de Software.\n\n"
+        f"CONTEXTO DO PROJETO:\n"
+        f"- Modelo comercial: {contrato}\n"
+        f"- Duração: {n_meses} meses\n\n"
+        f"OPORTUNIDADES E SOLUÇÕES DEFINIDAS:\n{items_text}\n\n"
+        f"BANDAS IBM DISPONÍVEIS (com taxa/hora):\n{bandas_info}\n\n"
+        "TAREFA:\n"
+        "Monte a estrutura de squads/times para este projeto.\n"
+        "Para cada squad/grupo, defina os profissionais necessários com:\n"
+        "- Nome do papel (ex: Data Scientist, ML Engineer, Gerente de Projeto)\n"
+        "- Banda IBM adequada ao nível de senioridade do papel\n"
+        "- Alocação mensal (0.0 a 1.0) para cada mês, onde 1.0 = fulltime\n\n"
+        "REGRAS:\n"
+        "- Crie grupos lógicos (ex: GOVERNANCE, DATA ENGINEERING, ML/AI, etc.)\n"
+        "- Sempre inclua um Gerente de Projeto (Band 8 ou 9) no primeiro grupo\n"
+        "- Alocações DEVEM ser apenas: 1.0 (fulltime) ou 0.5 (meio período). "
+        "Valores intermediários como 0.8 ou 0.3 são impraticáveis.\n"
+        "- Se um profissional não participa em um mês, use 0.0. Não use valores abaixo de 0.5.\n"
+        "- Modele ramp-up/ramp-down com transições entre 0.0, 0.5 e 1.0\n"
+        "- Use bandas coerentes: Data Scientists em Band 7A-8, Engenheiros em Band 7A-7B, "
+        "Analistas em Band 6-7B, Arquitetos em Band 8-9, Gerentes em Band 8-10\n"
+        "- Considere a complexidade das soluções técnicas para dimensionar o time\n"
+        f"- O array meses DEVE ter exatamente {n_meses} elementos\n"
+        "- NÃO inclua profissionais desnecessários — seja eficiente\n\n"
+        "Retorne APENAS um array JSON válido no formato abaixo, sem texto ou markdown:\n"
+        "[\n"
+        '  {\n    "nome": "NOME_DO_GRUPO",\n'
+        '    "profissionais": [\n'
+        '      {\n        "nome": "Papel do profissional",\n'
+        '        "banda": "Band XX",\n'
+        f'        "meses": [0.0, ...] // exatamente {n_meses} valores\n'
+        "      }\n    ]\n  }\n]"
+    )
+
+
+def _parse_staffing_response(text: str, n_meses: int) -> list[Grupo] | None:
+    """Tenta extrair lista de Grupo a partir da resposta JSON do agente."""
+    if not text:
+        return None
+
+    cleaned = text.strip()
+    # Remove blocos markdown
+    if "```" in cleaned:
+        m = re.search(r"```(?:json)?\s*(\[.*?])\s*```", cleaned, re.DOTALL)
+        if m:
+            cleaned = m.group(1)
+
+    start = cleaned.find("[")
+    end = cleaned.rfind("]")
+    if start < 0 or end <= start:
+        return None
+
+    cleaned = cleaned[start : end + 1]
+    # Remove comentários JS // dentro do JSON
+    cleaned = re.sub(r"//[^\n]*", "", cleaned)
+
+    try:
+        data = json.loads(cleaned)
+    except (json.JSONDecodeError, ValueError):
+        return None
+
+    if not isinstance(data, list):
+        return None
+
+    grupos = []
+    for g in data:
+        if not isinstance(g, dict) or "nome" not in g:
+            continue
+        profs = []
+        for p in g.get("profissionais", []):
+            if not isinstance(p, dict):
+                continue
+            banda = p.get("banda", "Band 7A")
+            if banda not in BANDAS:
+                banda = "Band 7A"
+            meses_raw = p.get("meses", [0.0] * n_meses)
+            # Garante tamanho correto
+            if len(meses_raw) < n_meses:
+                meses_raw += [0.0] * (n_meses - len(meses_raw))
+            elif len(meses_raw) > n_meses:
+                meses_raw = meses_raw[:n_meses]
+
+            # Clamp para valores práticos: 0.0, 0.5, 1.0
+            def _snap(v: float) -> float:
+                v = max(0.0, min(1.0, float(v)))
+                if v < 0.25:
+                    return 0.0
+                if v < 0.75:
+                    return 0.5
+                return 1.0
+
+            meses_raw = [_snap(v) for v in meses_raw]
+            profs.append(
+                Profissional(
+                    nome=p.get("nome", "Profissional"),
+                    banda=banda,
+                    meses=meses_raw,
+                )
+            )
+        if profs:
+            grupos.append(Grupo(nome=g["nome"], profissionais=profs))
+
+    return grupos if grupos else None
+
+
 # ── CSS customizado para layout compacto ──────────────────────────────────────
 def _inject_css():
     st.markdown(
@@ -122,6 +251,56 @@ def _inject_css():
         display: flex; justify-content: flex-end; gap: 24px;
         padding: 8px 12px; background: #f4f4f4; border-radius: 4px;
         font-weight: 600; font-size: 0.9rem; margin-top: 8px;
+    }
+
+    /* Botão AI Staffing — destaque azul IBM */
+    div.st-key-btn_ai_staffing button {
+        background: #0f62fe !important;
+        color: #fff !important;
+        border: none !important;
+        font-weight: 600 !important;
+        transition: background 0.2s;
+    }
+    div.st-key-btn_ai_staffing button:hover {
+        background: #0043ce !important;
+    }
+    div.st-key-btn_ai_staffing button:disabled {
+        background: #c6c6c6 !important;
+        color: #8d8d8d !important;
+    }
+
+    /* Botão + Novo grupo — outline azul */
+    div.st-key-btn_novo_grupo button {
+        border: 2px solid #0f62fe !important;
+        color: #0f62fe !important;
+        background: transparent !important;
+        font-weight: 600 !important;
+        transition: all 0.2s;
+    }
+    div.st-key-btn_novo_grupo button:hover {
+        background: #e8f0fe !important;
+    }
+
+    /* Botão + Item (misc) — outline cinza */
+    div.st-key-add_misc button {
+        border: 2px solid #525252 !important;
+        color: #525252 !important;
+        background: transparent !important;
+        font-weight: 600 !important;
+    }
+    div.st-key-add_misc button:hover {
+        background: #f4f4f4 !important;
+    }
+
+    /* Botão ➕ Profissional — outline sutil */
+    div[class*="st-key-ap_"] button {
+        border: 1px solid #0f62fe !important;
+        color: #0f62fe !important;
+        background: transparent !important;
+        font-size: 0.8rem !important;
+    }
+    div[class*="st-key-ap_"] button:hover {
+        background: #e8f0fe !important;
     }
     </style>
     """,
@@ -881,8 +1060,8 @@ def render():
     # Painel de resultado ao vivo (KPI cards)
     _summary_bar(grupos)
 
-    # Header "Grupos" + botão "+ Novo grupo"
-    col_label, col_spacer, col_nome, col_btn = st.columns([1, 2, 3, 1.5])
+    # Header "Grupos" + botão "+ Novo grupo" + botão AI Staffing
+    col_label, col_spacer, col_nome, col_btn, col_ai = st.columns([1, 1.5, 3, 1.5, 1.5])
     with col_label:
         st.markdown("**Grupos**")
     with col_nome:
@@ -893,10 +1072,49 @@ def render():
             label_visibility="collapsed",
         )
     with col_btn:
-        if st.button("+ Novo grupo", width="stretch"):
+        if st.button("+ Novo grupo", key="btn_novo_grupo", width="stretch"):
             nome = novo_grupo_nome.strip() or f"GRUPO {len(grupos) + 1}"
             grupos.append(Grupo(nome=nome))
             st.rerun()
+    with col_ai:
+        has_proposal = bool(st.session_state.get("proposal_items"))
+        if st.button(
+            "🤖 AI Staffing",
+            key="btn_ai_staffing",
+            width="stretch",
+            disabled=not has_proposal,
+            help="Gera squads automaticamente com IA a partir das oportunidades da Proposta"
+            if has_proposal
+            else "Preencha as oportunidades na etapa Proposta primeiro",
+        ):
+            prompt = _build_staffing_prompt(n)
+            if prompt:
+                from utils.llm import gerar_resposta_watsonx
+
+                with st.spinner("Agente montando squads..."):
+                    response = gerar_resposta_watsonx(
+                        prompt, temperature=0.3, max_tokens=4000
+                    )
+                ai_grupos = _parse_staffing_response(response, n) if response else None
+                if ai_grupos:
+                    st.session_state["grupos"] = ai_grupos
+                    st.success(
+                        f"{len(ai_grupos)} grupo(s) gerados com "
+                        f"{sum(len(g.profissionais) for g in ai_grupos)} profissionais"
+                    )
+                    st.rerun()
+                else:
+                    st.error("Não foi possível interpretar a resposta do agente.")
+                    if response:
+                        st.session_state["_raw_staffing_response"] = response
+
+    # Mostra resposta bruta se parse falhou
+    if st.session_state.get("_raw_staffing_response"):
+        with st.expander("Resposta bruta do agente (debug)", expanded=False):
+            st.code(st.session_state["_raw_staffing_response"], language="json")
+            if st.button("Limpar", key="btn_clear_staffing_raw"):
+                del st.session_state["_raw_staffing_response"]
+                st.rerun()
 
     # Renderiza cada grupo
     for gidx, grupo in enumerate(grupos):

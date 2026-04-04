@@ -104,9 +104,7 @@ def _render_input():
     with tab_manual:
         manual_text = st.text_area(
             "Digite ou cole o conteúdo para análise:",
-            value=st.session_state.get(
-                "texto_extraido", carregar_benchmark("cemig_en")
-            ),
+            value=st.session_state.get("texto_extraido", carregar_benchmark("cemig")),
             height=220,
             label_visibility="collapsed",
         )
